@@ -3,11 +3,8 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { format } from "date-fns";
-
-// Use generic string type for IDs - will be typed properly once Convex types are generated
-type ExerciseId = string;
-type SessionId = string;
 import {
   Check,
   ChevronLeft,
@@ -21,7 +18,7 @@ import {
 import Link from "next/link";
 
 type SetLog = {
-  exerciseId: ExerciseId;
+  exerciseId: Id<"exercises">;
   setIndex: number;
   repsActual: number;
   weight: number;
@@ -72,11 +69,11 @@ export default function LogPage() {
     setSelectedDate(format(date, "yyyy-MM-dd"));
   };
 
-  const getSetKey = (exerciseId: ExerciseId, setIndex: number) =>
+  const getSetKey = (exerciseId: Id<"exercises">, setIndex: number) =>
     `${exerciseId}-${setIndex}`;
 
   const updateSetLog = (
-    exerciseId: ExerciseId,
+    exerciseId: Id<"exercises">,
     setIndex: number,
     field: "repsActual" | "weight",
     value: number
@@ -96,7 +93,7 @@ export default function LogPage() {
     }));
   };
 
-  const saveSet = async (exerciseId: ExerciseId, setIndex: number) => {
+  const saveSet = async (exerciseId: Id<"exercises">, setIndex: number) => {
     const key = getSetKey(exerciseId, setIndex);
     const setData = setLogs[key];
     if (!setData || (setData.repsActual === 0 && setData.weight === 0)) return;
@@ -143,7 +140,10 @@ export default function LogPage() {
     (s) => s.saved && s.weight > 0
   ).length;
   const totalSetsPlanned =
-    todayTemplate?.exercises?.reduce((sum: number, e: { sets: unknown[] }) => sum + e.sets.length, 0) ?? 0;
+    todayTemplate?.exercises?.reduce(
+      (sum: number, e: { sets: unknown[] }) => sum + e.sets.length,
+      0
+    ) ?? 0;
 
   const isLoading = todayTemplate === undefined;
 
@@ -204,8 +204,7 @@ export default function LogPage() {
           <div>
             <h3 className="font-semibold text-primary">Workout Completed!</h3>
             <p className="text-sm text-muted-foreground">
-              Finished at{" "}
-              {format(new Date(sessionData.completedAt!), "h:mm a")}
+              Finished at {format(new Date(sessionData.completedAt!), "h:mm a")}
             </p>
           </div>
         </div>
@@ -255,134 +254,150 @@ export default function LogPage() {
         <>
           {/* Exercise List */}
           <div className="space-y-4">
-            {todayTemplate.exercises.map((planExercise: { _id: string; exercise?: { _id: string; name: string; muscleGroup?: string; equipment?: string } | null; sets: { repsTarget: number }[] }, exIndex: number) => {
-              const exercise = planExercise.exercise;
-              if (!exercise) return null;
+            {todayTemplate.exercises.map(
+              (
+                planExercise: {
+                  _id: string;
+                  exercise?: {
+                    _id: Id<"exercises">;
+                    name: string;
+                    muscleGroup?: string;
+                    equipment?: string;
+                  } | null;
+                  sets: { repsTarget: number }[];
+                },
+                exIndex: number
+              ) => {
+                const exercise = planExercise.exercise;
+                if (!exercise) return null;
 
-              return (
-                <div
-                  key={planExercise._id}
-                  className="card"
-                  style={{ animationDelay: `${exIndex * 50}ms` }}
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-primary-muted rounded-xl flex items-center justify-center">
-                      <Dumbbell className="w-5 h-5 text-primary" />
+                return (
+                  <div
+                    key={planExercise._id}
+                    className="card"
+                    style={{ animationDelay: `${exIndex * 50}ms` }}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-primary-muted rounded-xl flex items-center justify-center">
+                        <Dumbbell className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{exercise.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {exercise.muscleGroup}
+                          {exercise.equipment && ` • ${exercise.equipment}`}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold">{exercise.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {exercise.muscleGroup}
-                        {exercise.equipment && ` • ${exercise.equipment}`}
-                      </p>
-                    </div>
-                  </div>
 
-                  {/* Sets Table */}
-                  <div className="overflow-x-auto -mx-5 px-5">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="text-left text-sm text-muted-foreground border-b border-border">
-                          <th className="pb-2 font-medium">Set</th>
-                          <th className="pb-2 font-medium">Target</th>
-                          <th className="pb-2 font-medium">Weight (lb)</th>
-                          <th className="pb-2 font-medium">Reps</th>
-                          <th className="pb-2"></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {planExercise.sets.map((set: { repsTarget: number }, setIndex: number) => {
-                          const key = getSetKey(exercise._id, setIndex);
-                          const setLog = setLogs[key];
-                          const isSaved = setLog?.saved;
+                    {/* Sets Table */}
+                    <div className="overflow-x-auto -mx-5 px-5">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="text-left text-sm text-muted-foreground border-b border-border">
+                            <th className="pb-2 font-medium">Set</th>
+                            <th className="pb-2 font-medium">Target</th>
+                            <th className="pb-2 font-medium">Weight (lb)</th>
+                            <th className="pb-2 font-medium">Reps</th>
+                            <th className="pb-2"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {planExercise.sets.map(
+                            (set: { repsTarget: number }, setIndex: number) => {
+                              const key = getSetKey(exercise._id, setIndex);
+                              const setLog = setLogs[key];
+                              const isSaved = setLog?.saved;
 
-                          return (
-                            <tr
-                              key={setIndex}
-                              className="border-b border-border/50 last:border-0"
-                            >
-                              <td className="py-3">
-                                <span className="w-8 h-8 bg-card rounded-full inline-flex items-center justify-center text-sm font-medium">
-                                  {setIndex + 1}
-                                </span>
-                              </td>
-                              <td className="py-3">
-                                <span className="text-muted-foreground">
-                                  {set.repsTarget} reps
-                                </span>
-                              </td>
-                              <td className="py-3">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="2.5"
-                                  value={setLog?.weight || ""}
-                                  onChange={(e) =>
-                                    updateSetLog(
-                                      exercise._id,
-                                      setIndex,
-                                      "weight",
-                                      parseFloat(e.target.value) || 0
-                                    )
-                                  }
-                                  disabled={isCompleted}
-                                  className="input w-24 text-center"
-                                  placeholder="0"
-                                />
-                              </td>
-                              <td className="py-3">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  max="100"
-                                  value={setLog?.repsActual || ""}
-                                  onChange={(e) =>
-                                    updateSetLog(
-                                      exercise._id,
-                                      setIndex,
-                                      "repsActual",
-                                      parseInt(e.target.value) || 0
-                                    )
-                                  }
-                                  disabled={isCompleted}
-                                  className="input w-20 text-center"
-                                  placeholder="0"
-                                />
-                              </td>
-                              <td className="py-3">
-                                {!isCompleted && (
-                                  <button
-                                    onClick={() =>
-                                      saveSet(exercise._id, setIndex)
-                                    }
-                                    disabled={
-                                      isSaved ||
-                                      !setLog?.weight ||
-                                      !setLog?.repsActual
-                                    }
-                                    className={`btn p-2 ${
-                                      isSaved
-                                        ? "btn-ghost text-primary"
-                                        : "btn-secondary"
-                                    }`}
-                                  >
-                                    {isSaved ? (
-                                      <Check className="w-4 h-4" />
-                                    ) : (
-                                      <Save className="w-4 h-4" />
+                              return (
+                                <tr
+                                  key={setIndex}
+                                  className="border-b border-border/50 last:border-0"
+                                >
+                                  <td className="py-3">
+                                    <span className="w-8 h-8 bg-card rounded-full inline-flex items-center justify-center text-sm font-medium">
+                                      {setIndex + 1}
+                                    </span>
+                                  </td>
+                                  <td className="py-3">
+                                    <span className="text-muted-foreground">
+                                      {set.repsTarget} reps
+                                    </span>
+                                  </td>
+                                  <td className="py-3">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="2.5"
+                                      value={setLog?.weight || ""}
+                                      onChange={(e) =>
+                                        updateSetLog(
+                                          exercise._id,
+                                          setIndex,
+                                          "weight",
+                                          parseFloat(e.target.value) || 0
+                                        )
+                                      }
+                                      disabled={isCompleted}
+                                      className="input w-24 text-center"
+                                      placeholder="0"
+                                    />
+                                  </td>
+                                  <td className="py-3">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      value={setLog?.repsActual || ""}
+                                      onChange={(e) =>
+                                        updateSetLog(
+                                          exercise._id,
+                                          setIndex,
+                                          "repsActual",
+                                          parseInt(e.target.value) || 0
+                                        )
+                                      }
+                                      disabled={isCompleted}
+                                      className="input w-20 text-center"
+                                      placeholder="0"
+                                    />
+                                  </td>
+                                  <td className="py-3">
+                                    {!isCompleted && (
+                                      <button
+                                        onClick={() =>
+                                          saveSet(exercise._id, setIndex)
+                                        }
+                                        disabled={
+                                          isSaved ||
+                                          !setLog?.weight ||
+                                          !setLog?.repsActual
+                                        }
+                                        className={`btn p-2 ${
+                                          isSaved
+                                            ? "btn-ghost text-primary"
+                                            : "btn-secondary"
+                                        }`}
+                                      >
+                                        {isSaved ? (
+                                          <Check className="w-4 h-4" />
+                                        ) : (
+                                          <Save className="w-4 h-4" />
+                                        )}
+                                      </button>
                                     )}
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                                  </td>
+                                </tr>
+                              );
+                            }
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              }
+            )}
           </div>
 
           {/* Complete Workout Button */}

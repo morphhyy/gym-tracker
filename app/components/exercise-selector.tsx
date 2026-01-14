@@ -3,13 +3,11 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { Search, Plus, X, Check, Dumbbell } from "lucide-react";
 
-// Use generic string type for IDs - will be typed properly once Convex types are generated
-type ExerciseId = string;
-
 interface ExerciseSelectorProps {
-  onSelect: (exerciseId: ExerciseId, exerciseName: string) => void;
+  onSelect: (exerciseId: Id<"exercises">, exerciseName: string) => void;
   onClose: () => void;
 }
 
@@ -119,7 +117,7 @@ export function ExerciseSelector({ onSelect, onClose }: ExerciseSelectorProps) {
                         {groupExercises.map((exercise: Exercise) => (
                           <button
                             key={exercise._id}
-                            onClick={() => onSelect(exercise._id as ExerciseId, exercise.name)}
+                            onClick={() => onSelect(exercise._id as Id<"exercises">, exercise.name)}
                             className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-card transition-colors text-left group"
                           >
                             <div>

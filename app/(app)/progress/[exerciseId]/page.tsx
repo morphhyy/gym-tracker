@@ -3,10 +3,8 @@
 import { useParams } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import Link from "next/link";
-
-// Use generic string type for IDs - will be typed properly once Convex types are generated
-type ExerciseId = string;
 import {
   ArrowLeft,
   TrendingUp,
@@ -31,7 +29,7 @@ import { format, parseISO } from "date-fns";
 
 export default function ExerciseProgressPage() {
   const params = useParams();
-  const exerciseId = params.exerciseId as ExerciseId;
+  const exerciseId = params.exerciseId as Id<"exercises">;
 
   const history = useQuery(api.progress.getExerciseHistory, {
     exerciseId,

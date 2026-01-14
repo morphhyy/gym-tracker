@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
 import { requireAuth } from "./auth";
 
 // Get exercise history for charts
@@ -197,7 +198,8 @@ export const getAllExerciseStats = query({
     // Get exercise details
     const statsWithNames = await Promise.all(
       Object.values(exerciseStats).map(async (stats) => {
-        const exercise = await ctx.db.get(stats.exerciseId as any);
+        const exerciseId = stats.exerciseId as Id<"exercises">;
+        const exercise = await ctx.db.get(exerciseId);
         return {
           ...stats,
           exerciseName: exercise?.name ?? "Unknown",

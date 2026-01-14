@@ -3,10 +3,8 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { ExerciseSelector } from "@/app/components/exercise-selector";
-
-// Use generic string type for IDs - will be typed properly once Convex types are generated
-type ExerciseId = string;
 import {
   Plus,
   Trash2,
@@ -20,7 +18,7 @@ import {
 import { getDayName, getShortDayName } from "@/app/lib/utils";
 
 type PlanExercise = {
-  exerciseId: ExerciseId;
+  exerciseId: Id<"exercises">;
   exerciseName: string;
   order: number;
   sets: { repsTarget: number; notes?: string }[];
@@ -59,10 +57,10 @@ export default function PlanPage() {
     if (activePlan) {
       setPlanName(activePlan.name);
       setDays(
-        activePlan.days.map((day: { weekday: number; name?: string; exercises: { exerciseId: string; exercise?: { name: string } | null; sets: { repsTarget: number; notes?: string }[] }[] }) => ({
+        activePlan.days.map((day: { weekday: number; name?: string; exercises: { exerciseId: Id<"exercises">; exercise?: { name: string } | null; sets: { repsTarget: number; notes?: string }[] }[] }) => ({
           weekday: day.weekday,
           name: day.name,
-          exercises: day.exercises.map((e: { exerciseId: string; exercise?: { name: string } | null; sets: { repsTarget: number; notes?: string }[] }, idx: number) => ({
+          exercises: day.exercises.map((e: { exerciseId: Id<"exercises">; exercise?: { name: string } | null; sets: { repsTarget: number; notes?: string }[] }, idx: number) => ({
             exerciseId: e.exerciseId,
             exerciseName: e.exercise?.name ?? "Unknown",
             order: idx,
@@ -93,7 +91,7 @@ export default function PlanPage() {
 
   const addExercise = (
     dayIndex: number,
-    exerciseId: ExerciseId,
+    exerciseId: Id<"exercises">,
     exerciseName: string
   ) => {
     setDays((prev) =>
@@ -299,7 +297,7 @@ export default function PlanPage() {
             <div className="space-y-2">
               {allPlans
                 .sort((a: { planVersion: number }, b: { planVersion: number }) => b.planVersion - a.planVersion)
-                .map((plan: { _id: string; name: string; planVersion: number; active: boolean }) => (
+                .map((plan: { _id: Id<"plans">; name: string; planVersion: number; active: boolean }) => (
                   <div
                     key={plan._id}
                     className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
