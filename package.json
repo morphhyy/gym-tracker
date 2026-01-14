@@ -6,7 +6,7 @@
     "dev": "npm run dev:next & npm run dev:convex",
     "dev:next": "next dev",
     "dev:convex": "convex dev",
-    "build": "next build",
+    "build": "npx convex codegen && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
