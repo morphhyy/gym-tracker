@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import {
-  Dumbbell,
+   Dumbbell,
   LineChart,
   Calendar,
   Target,
   ArrowRight,
   Zap,
 } from "lucide-react";
+import { DumbbellIcon } from "@/app/components/dumbbell-icon";
 
 export default function LandingPage() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -42,9 +43,7 @@ export default function LandingPage() {
         {/* Navigation */}
         <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Dumbbell className="w-6 h-6 text-background" />
-            </div>
+              <DumbbellIcon />
             <span className="text-xl font-bold tracking-tight">GymForge</span>
           </div>
           <div className="flex items-center gap-3">
@@ -228,9 +227,7 @@ export default function LandingPage() {
       <footer className="border-t border-border py-8 px-6">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Dumbbell className="w-4 h-4 text-background" />
-            </div>
+           <DumbbellIcon />
             <span className="font-semibold">GymForge</span>
           </div>
           <p className="text-muted-foreground text-sm">

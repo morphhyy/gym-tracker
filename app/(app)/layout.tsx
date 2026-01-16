@@ -7,13 +7,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import {
-  Dumbbell,
   Calendar,
   ClipboardList,
   LineChart,
   Home,
   User,
 } from "lucide-react";
+import { DumbbellIcon } from "@/app/components/dumbbell-icon";
 
 const navItems = [
   { href: "/dashboard", label: "Home", icon: Home },
@@ -40,9 +40,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile Header */}
       <header className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <Dumbbell className="w-4 h-4 text-background" />
-          </div>
+              <DumbbellIcon  />
           <span className="font-bold">GymForge</span>
         </Link>
         <UserButton
@@ -83,9 +81,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 border-r border-border bg-card/30">
         <div className="flex items-center gap-2 px-6 py-5 border-b border-border">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <Dumbbell className="w-6 h-6 text-background" />
-          </div>
+          <DumbbellIcon />
           <Link href="/dashboard" className="text-xl font-bold tracking-tight">
             GymForge
           </Link>
