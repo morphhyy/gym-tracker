@@ -39,6 +39,9 @@ export default function LogPage() {
   const sessionData = useQuery(api.sessions.getSessionByDate, {
     date: selectedDate,
   });
+  const userData = useQuery(api.users.getCurrentUser);
+
+  const weightUnit = userData?.units || "lb";
 
   const getOrCreateSession = useMutation(api.sessions.getOrCreateSession);
   const logSet = useMutation(api.sessions.logSet);
@@ -83,12 +86,11 @@ export default function LogPage() {
     setSetLogs((prev) => ({
       ...prev,
       [key]: {
-        ...prev[key],
         exerciseId,
         setIndex,
-        [field]: value,
         repsActual: prev[key]?.repsActual ?? 0,
         weight: prev[key]?.weight ?? 0,
+        [field]: value,
         saved: false,
       },
     }));
@@ -180,7 +182,7 @@ export default function LogPage() {
           >
             <ChevronLeft className="w-5 h-5" />
           </Button>
-          <div className="px-2 py-1 text-center min-w-[100px]">
+          <div className="px-2 py-1 text-center min-w-[100px] max-sm:min-w-[200px]">
             <p className="font-semibold">
               {isToday ? "Today" : format(new Date(selectedDate), "EEE, MMM d")}
             </p>
@@ -296,108 +298,114 @@ export default function LogPage() {
                     </div>
 
                     {/* Sets Table */}
-                    <div className="overflow-x-auto -mx-5 px-5">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="text-left text-sm text-muted-foreground border-b border-border">
-                            <th className="pb-2 font-medium">Set</th>
-                            <th className="pb-2 font-medium">Target</th>
-                            <th className="pb-2 font-medium">Weight</th>
-                            <th className="pb-2 font-medium">Reps</th>
-                            <th className="pb-2"></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {planExercise.sets.map(
-                            (set: { repsTarget: number }, setIndex: number) => {
-                              const key = getSetKey(exercise._id, setIndex);
-                              const setLog = setLogs[key];
-                              const isSaved = setLog?.saved;
+                    <div className="space-y-2 mt-2">
+                      {/* Header - hidden on mobile */}
+                      <div className="hidden sm:grid sm:grid-cols-[auto_1fr_1fr_1fr_auto] gap-3 text-sm text-muted-foreground pb-2 border-b border-border">
+                        <span className="w-8 font-medium">Set</span>
+                        <span className="font-medium">Target</span>
+                        <span className="font-medium">Weight</span>
+                        <span className="font-medium">Reps</span>
+                        <span className="w-10"></span>
+                      </div>
 
-                              return (
-                                <tr
-                                  key={setIndex}
-                                  className="border-b border-border/50 last:border-0"
-                                >
-                                  <td className="py-3">
-                                    <span className="w-8 h-8 bg-card rounded-full inline-flex items-center justify-center text-sm font-medium">
-                                      {setIndex + 1}
-                                    </span>
-                                  </td>
-                                  <td className="py-3">
-                                    <span className="text-muted-foreground">
-                                      {set.repsTarget} reps
-                                    </span>
-                                  </td>
-                                  <td className="py-3">
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="2.5"
-                                      value={setLog?.weight || ""}
-                                      onChange={(e) =>
-                                        updateSetLog(
-                                          exercise._id,
-                                          setIndex,
-                                          "weight",
-                                          parseFloat(e.target.value) || 0
-                                        )
-                                      }
-                                      disabled={isCompleted}
-                                      className="input w-24 text-center"
-                                      placeholder="0"
-                                    />
-                                  </td>
-                                  <td className="py-3">
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      max="100"
-                                      value={setLog?.repsActual || ""}
-                                      onChange={(e) =>
-                                        updateSetLog(
-                                          exercise._id,
-                                          setIndex,
-                                          "repsActual",
-                                          parseInt(e.target.value) || 0
-                                        )
-                                      }
-                                      disabled={isCompleted}
-                                      className="input w-20 text-center"
-                                      placeholder="0"
-                                    />
-                                  </td>
-                                  <td className="py-3">
-                                    {!isCompleted && (
-                                      <button
-                                        onClick={() =>
-                                          saveSet(exercise._id, setIndex)
-                                        }
-                                        disabled={
-                                          isSaved ||
-                                          !setLog?.weight ||
-                                          !setLog?.repsActual
-                                        }
-                                        className={`btn p-2 ${
-                                          isSaved
-                                            ? "btn-ghost text-primary"
-                                            : "btn-secondary"
-                                        }`}
-                                      >
-                                        {isSaved ? (
-                                          <Check className="w-4 h-4" />
-                                        ) : (
-                                          <Save className="w-4 h-4" />
-                                        )}
-                                      </button>
+                      {planExercise.sets.map(
+                        (set: { repsTarget: number }, setIndex: number) => {
+                          const key = getSetKey(exercise._id, setIndex);
+                          const setLog = setLogs[key];
+                          const isSaved = setLog?.saved;
+
+                          return (
+                            <div
+                              key={setIndex}
+                              className="flex items-end gap-3 py-2 border-b border-border/50 last:border-0"
+                            >
+                              {/* Set number - hidden on mobile */}
+                              <span className="hidden sm:inline-flex w-8 h-9 bg-background rounded-full items-center justify-center text-sm font-medium shrink-0">
+                                {setIndex + 1}
+                              </span>
+
+                              {/* Target - hidden on mobile */}
+                              <span className="hidden sm:flex flex-1 text-muted-foreground text-sm h-9 items-center">
+                                {set.repsTarget} reps
+                              </span>
+
+                              {/* Mobile: Set badge */}
+                              <span className="sm:hidden w-8 h-9 bg-background rounded-full inline-flex items-center justify-center text-xs font-medium shrink-0">
+                                {setIndex + 1}
+                              </span>
+
+                              {/* Weight input */}
+                              <div className="flex-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="2.5"
+                                  value={setLog?.weight || ""}
+                                  onChange={(e) =>
+                                    updateSetLog(
+                                      exercise._id,
+                                      setIndex,
+                                      "weight",
+                                      parseFloat(e.target.value) || 0
+                                    )
+                                  }
+                                  disabled={isCompleted}
+                                  className="input w-full text-center"
+                                  placeholder={weightUnit}
+                                />
+                              </div>
+
+                              {/* Reps input */}
+                              <div className="flex-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={setLog?.repsActual || ""}
+                                  onChange={(e) =>
+                                    updateSetLog(
+                                      exercise._id,
+                                      setIndex,
+                                      "repsActual",
+                                      parseInt(e.target.value) || 0
+                                    )
+                                  }
+                                  disabled={isCompleted}
+                                  className="input w-full text-center"
+                                  placeholder="reps"
+                                />
+                              </div>
+
+                              {/* Save button */}
+                              <div className="shrink-0">
+                                {!isCompleted && (
+                                  <button
+                                    onClick={() =>
+                                      saveSet(exercise._id, setIndex)
+                                    }
+                                    disabled={
+                                      isSaved ||
+                                      !setLog?.weight ||
+                                      !setLog?.repsActual
+                                    }
+                                    className={`btn p-2 h-9 ${
+                                      isSaved
+                                        ? "btn-ghost text-primary"
+                                        : "btn-secondary"
+                                    }`}
+                                  >
+                                    {isSaved ? (
+                                      <Check className="w-4 h-4" />
+                                    ) : (
+                                      <Save className="w-4 h-4" />
                                     )}
-                                  </td>
-                                </tr>
-                              );
-                            }
-                          )}
-                        </tbody>
-                      </table>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        }
+                      )}
                     </div>
                   </div>
                 );

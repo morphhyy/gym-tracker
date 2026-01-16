@@ -26,10 +26,11 @@ const DaySchema = z.object({
     .string()
     .optional()
     .nullable()
-    .describe("Workout type label (e.g., Push Day, Pull Day, Rest Day)"),
+    .describe("Workout type label (e.g., Push Day, Pull Day, Legs Day)"),
   exercises: z
     .array(ExerciseSchema)
-    .describe("Exercises for this day (empty array for rest days)"),
+    .min(1)
+    .describe("Exercises for this workout day (must have at least 1 exercise)"),
 });
 
 const WorkoutPlanSchema = z.object({
@@ -37,8 +38,9 @@ const WorkoutPlanSchema = z.object({
   description: z.string().describe("Brief description of the plan"),
   days: z
     .array(DaySchema)
-    .length(7)
-    .describe("All 7 days of the week (0-6, Sunday to Saturday)"),
+    .min(1)
+    .max(7)
+    .describe("Only the WORKOUT days requested by the user (NOT rest days)"),
 });
 
 // AI-powered workout plan generator
@@ -86,23 +88,33 @@ export const generateWorkoutPlan = action({
 
     // Get available exercises from the database
     const exercises = await ctx.runQuery(api.exercises.getAllExercises);
-    const exerciseNames = exercises
-      .map(
-        (e: { name: string; muscleGroup?: string }) =>
-          `${e.name}${e.muscleGroup ? ` (${e.muscleGroup})` : ""}`
-      )
-      .join(", ");
+
+    // Group exercises by muscle group for better AI understanding
+    const exercisesByGroup: Record<string, string[]> = {};
+    exercises.forEach((e: { name: string; muscleGroup?: string }) => {
+      const group = e.muscleGroup || "Other";
+      if (!exercisesByGroup[group]) {
+        exercisesByGroup[group] = [];
+      }
+      exercisesByGroup[group].push(e.name);
+    });
+
+    const exerciseList = Object.entries(exercisesByGroup)
+      .map(([group, names]) => `${group}: ${names.join(", ")}`)
+      .join("\n");
 
     const systemPrompt = `You are an elite strength and conditioning coach with 20+ years of experience training athletes and bodybuilders. Create scientifically-backed, personalized weekly workout plans.
 
-AVAILABLE EXERCISES (YOU MUST ONLY USE THESE EXACT NAMES):
-${exerciseNames}
+AVAILABLE EXERCISES BY MUSCLE GROUP:
+${exerciseList}
 
 CRITICAL RULES:
-1. ONLY use exercise names EXACTLY as listed above - no variations or alternatives
-2. weekday: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday
-3. Include ALL 7 days (0-6) in your response
-4. Rest days = empty exercises array with label "Rest Day"
+1. Exercise names MUST match EXACTLY as listed above (e.g., "Bench Press" NOT "Barbell Bench Press")
+2. weekday values: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday
+3. ONLY include workout days that the user requests - DO NOT add rest days
+4. If user asks for 6-day workout, return exactly 6 workout days with exercises
+5. If user asks for 3-day workout, return exactly 3 workout days with exercises
+6. Every day MUST have at least 3-5 exercises
 
 PROGRAM DESIGN PRINCIPLES:
 - Compound movements first (squats, deadlifts, bench, rows, overhead press)
@@ -123,7 +135,6 @@ SPLIT RECOMMENDATIONS:
 - 2-3 days: Full Body each session
 - 4 days: Upper/Lower split (2 upper, 2 lower)
 - 5-6 days: Push/Pull/Legs (PPL) or Arnold split
-- Include at least 1-2 rest days per week
 
 EXERCISE ORDER (per session):
 1. Power/Olympic lifts (if applicable)

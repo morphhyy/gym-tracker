@@ -9,9 +9,9 @@ import {
   ArrowLeft,
   TrendingUp,
   TrendingDown,
-  Minus,
   Dumbbell,
   Target,
+  Calendar,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -39,7 +39,9 @@ export default function ExerciseProgressPage() {
     exerciseId,
   });
   const exercises = useQuery(api.exercises.getAllExercises);
+  const userData = useQuery(api.users.getCurrentUser);
 
+  const weightUnit = userData?.units || "lb";
   const exercise = exercises?.find((e: { _id: string }) => e._id === exerciseId);
 
   const isLoading =
@@ -96,9 +98,9 @@ export default function ExerciseProgressPage() {
         <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
           <p className="font-medium mb-2">{data.fullDate}</p>
           <div className="space-y-1 text-sm">
-            <p className="text-primary">Top Set: {data.topSet} lb × {data.reps}</p>
-            <p className="text-secondary">Volume: {data.volume}k lb</p>
-            <p className="text-accent">Est. 1RM: {data.e1RM} lb</p>
+            <p className="text-primary">Top Set: {data.topSet} {weightUnit} × {data.reps}</p>
+            <p className="text-secondary">Volume: {data.volume}k {weightUnit}</p>
+            <p className="text-accent">Est. 1RM: {data.e1RM} {weightUnit}</p>
           </div>
         </div>
       );
@@ -178,50 +180,71 @@ export default function ExerciseProgressPage() {
       )}
 
       {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="card">
-          <p className="text-sm text-muted-foreground mb-1">Current Top Set</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold">{currentTopSet}</span>
-            <span className="text-muted-foreground">lb</span>
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="card bg-gradient-to-br from-primary/10 to-transparent border-primary/20">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+              <Dumbbell className="w-4 h-4 text-primary" />
+            </div>
+            <p className="text-xs text-muted-foreground">Current Top Set</p>
+          </div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl sm:text-3xl font-bold">{currentTopSet}</span>
+            <span className="text-sm text-muted-foreground">{weightUnit}</span>
           </div>
           {topSetChange !== 0 && (
             <div
-              className={`flex items-center gap-1 mt-1 text-sm ${
+              className={`flex items-center gap-1 mt-2 text-xs ${
                 topSetChange > 0 ? "text-primary" : "text-danger"
               }`}
             >
               {topSetChange > 0 ? (
-                <TrendingUp className="w-4 h-4" />
+                <TrendingUp className="w-3 h-3" />
               ) : (
-                <TrendingDown className="w-4 h-4" />
+                <TrendingDown className="w-3 h-3" />
               )}
               {topSetChange > 0 ? "+" : ""}
-              {topSetChange} lb
+              {topSetChange} {weightUnit}
             </div>
           )}
         </div>
 
-        <div className="card">
-          <p className="text-sm text-muted-foreground mb-1">Personal Best</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-accent">{bestWeight}</span>
-            <span className="text-muted-foreground">lb</span>
+        <div className="card bg-gradient-to-br from-amber-500/10 to-transparent border-amber-500/20">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+              <Target className="w-4 h-4 text-amber-500" />
+            </div>
+            <p className="text-xs text-muted-foreground">Personal Best</p>
+          </div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl sm:text-3xl font-bold text-amber-500">{bestWeight}</span>
+            <span className="text-sm text-muted-foreground">{weightUnit}</span>
+          </div>
+        </div>
+
+        <div className="card bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-blue-500" />
+            </div>
+            <p className="text-xs text-muted-foreground">Est. 1RM</p>
+          </div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl sm:text-3xl font-bold text-blue-500">{bestE1RM}</span>
+            <span className="text-sm text-muted-foreground">{weightUnit}</span>
           </div>
         </div>
 
         <div className="card">
-          <p className="text-sm text-muted-foreground mb-1">Est. 1RM</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-secondary">{bestE1RM}</span>
-            <span className="text-muted-foreground">lb</span>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-card-hover flex items-center justify-center">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+            </div>
+            <p className="text-xs text-muted-foreground">Sessions</p>
           </div>
-        </div>
-
-        <div className="card">
-          <p className="text-sm text-muted-foreground mb-1">Sessions Logged</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold">{totalSessions}</span>
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl sm:text-3xl font-bold">{totalSessions}</span>
+            <span className="text-sm text-muted-foreground">logged</span>
           </div>
         </div>
       </div>
@@ -267,7 +290,7 @@ export default function ExerciseProgressPage() {
                     stroke="#10b981"
                     strokeWidth={2}
                     fill="url(#topSetGradient)"
-                    name="Top Set (lb)"
+                    name={`Top Set (${weightUnit})`}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -304,6 +327,8 @@ export default function ExerciseProgressPage() {
                     formatter={(value) => (
                       <span className="text-sm text-muted-foreground">{value}</span>
                     )}
+                    iconType="circle"
+                    iconSize={8}
                   />
                   <Line
                     type="monotone"
@@ -311,7 +336,7 @@ export default function ExerciseProgressPage() {
                     stroke="#10b981"
                     strokeWidth={2}
                     dot={false}
-                    name="Top Set (lb)"
+                    name={`Top Set (${weightUnit})`}
                   />
                   <Line
                     type="monotone"
@@ -319,7 +344,7 @@ export default function ExerciseProgressPage() {
                     stroke="#f59e0b"
                     strokeWidth={2}
                     dot={false}
-                    name="Est. 1RM (lb)"
+                    name={`Est. 1RM (${weightUnit})`}
                   />
                   <Line
                     type="monotone"
@@ -327,7 +352,7 @@ export default function ExerciseProgressPage() {
                     stroke="#6366f1"
                     strokeWidth={2}
                     dot={false}
-                    name="Volume (k lb)"
+                    name={`Volume (k ${weightUnit})`}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -362,13 +387,13 @@ export default function ExerciseProgressPage() {
                           {format(parseISO(session.date), "MMM d, yyyy")}
                         </td>
                         <td className="py-3 font-medium">
-                          {session.topSetWeight} lb × {session.topSetReps}
+                          {session.topSetWeight} {weightUnit} × {session.topSetReps}
                         </td>
                         <td className="py-3 text-muted-foreground">
                           {(session.totalVolume / 1000).toFixed(1)}k
                         </td>
                         <td className="py-3 text-accent">
-                          {session.estimated1RM} lb
+                          {session.estimated1RM} {weightUnit}
                         </td>
                         <td className="py-3 text-muted-foreground">
                           {session.setCount}

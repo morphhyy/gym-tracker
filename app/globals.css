@@ -220,12 +220,13 @@ body {
 .input {
   width: 100%;
   padding: 0.625rem 0.875rem;
-  background: var(--background);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   color: var(--foreground);
+  -webkit-text-fill-color: var(--foreground);
   font-size: 0.875rem;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .input:hover {
@@ -233,12 +234,31 @@ body {
 }
 
 .input:focus {
+  background: var(--background);
   border-color: var(--primary);
   outline: none;
 }
 
 .input::placeholder {
-  color: var(--muted);
+  color: var(--muted-foreground);
+  -webkit-text-fill-color: var(--muted-foreground);
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Hide number input spinners */
+.input[type="number"]::-webkit-inner-spin-button,
+.input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* Select */

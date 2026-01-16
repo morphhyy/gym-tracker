@@ -53,6 +53,7 @@ export default function PlanPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [planToDelete, setPlanToDelete] = useState<Id<"plans"> | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isAIGenerated, setIsAIGenerated] = useState(false);
 
   // Seed exercises on first load if needed
   const exercises = useQuery(api.exercises.getAllExercises);
@@ -124,6 +125,7 @@ export default function PlanPage() {
     );
     setIsEditing(true);
     setExpandedDay(0);
+    setIsAIGenerated(false);
   };
 
   const handleAIPlanGenerated = (plan: {
@@ -155,12 +157,13 @@ export default function PlanPage() {
     setShowAIGenerator(false);
     setIsEditing(true);
     setExpandedDay(0);
-    toast.success("AI plan loaded! Review and save when ready.");
+    setIsAIGenerated(true);
   };
 
   const startEditing = () => {
     initializeFromPlan();
     setIsEditing(true);
+    setIsAIGenerated(false);
   };
 
   const addExercise = (
@@ -241,6 +244,7 @@ export default function PlanPage() {
     try {
       await createPlan({
         name: planName,
+        isAIGenerated,
         days: days.map((day) => ({
           weekday: day.weekday,
           name: day.name,
@@ -253,6 +257,7 @@ export default function PlanPage() {
       });
       toast.success("Plan saved successfully!", { id: toastId });
       setIsEditing(false);
+      setIsAIGenerated(false);
     } catch (error) {
       console.error("Failed to save plan:", error);
       toast.error("Failed to save plan. Please try again.", { id: toastId });
@@ -331,22 +336,22 @@ export default function PlanPage() {
               {new Date(activePlan.createdAt).toLocaleDateString()}
             </p>
           </div>
-          <div className="flex gap-3">
-            <button onClick={startEditing} className="btn btn-secondary">
+          <div className="grid grid-cols-3 sm:flex gap-2 sm:gap-3 w-full sm:w-auto">
+            <button onClick={startEditing} className="btn btn-secondary text-sm sm:text-base">
               <Edit2 className="w-4 h-4" />
-              Edit
+              <span className="hidden sm:inline">Edit</span>
             </button>
-            <button onClick={startNewPlan} className="btn btn-secondary">
+            <button onClick={startNewPlan} className="btn btn-secondary text-sm sm:text-base">
               <Plus className="w-4 h-4" />
-              New Plan
+              <span className="hidden sm:inline">New</span>
             </button>
             <button
               onClick={() => setShowAIGenerator(true)}
               disabled={aiUsage?.isLimitReached}
-              className="btn btn-ai"
+              className="btn btn-ai text-sm sm:text-base"
             >
               <Sparkles className="w-4 h-4" />
-              AI Generate
+              <span className="hidden sm:inline">AI</span>
             </button>
           </div>
         </div>
@@ -665,34 +670,35 @@ export default function PlanPage() {
                       {day.exercises.map((exercise, exIndex) => (
                         <div
                           key={`${exercise.exerciseId}-${exIndex}`}
-                          className="bg-background rounded-lg p-3 border border-border"
+                          className="bg-background rounded-lg p-4 border border-border"
                         >
-                          <div className="flex items-center justify-between mb-3">
+                          {/* Exercise Header */}
+                          <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
-                              <GripVertical className="w-4 h-4 text-muted cursor-grab" />
+                              <GripVertical className="w-4 h-4 text-muted cursor-grab hidden sm:block" />
                               <span className="font-medium">
                                 {exercise.exerciseName}
                               </span>
                             </div>
                             <button
                               onClick={() => removeExercise(dayIndex, exIndex)}
-                              className="btn btn-ghost p-1 text-muted hover:text-danger"
+                              className="btn btn-ghost p-1.5 text-muted hover:text-danger hover:bg-danger/10"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
 
-                          {/* Sets */}
-                          <div className="flex flex-wrap items-center gap-2">
+                          {/* Sets Section */}
+                          <div className="space-y-3">
                             <span className="text-sm text-muted-foreground">
-                              Sets:
+                              Sets (reps per set):
                             </span>
-                            {exercise.sets.map((set, setIndex) => (
-                              <div
-                                key={setIndex}
-                                className="flex items-center gap-1"
-                              >
+
+                            {/* Sets Grid */}
+                            <div className="flex flex-wrap gap-2">
+                              {exercise.sets.map((set, setIndex) => (
                                 <input
+                                  key={setIndex}
                                   type="number"
                                   min="1"
                                   max="50"
@@ -709,42 +715,43 @@ export default function PlanPage() {
                                       newSets
                                     );
                                   }}
-                                  className="input w-14 text-center p-1 text-sm"
+                                  className="input w-16 text-center py-2 text-sm"
                                 />
-                                {setIndex < exercise.sets.length - 1 && (
-                                  <span className="text-muted-foreground">
-                                    ×
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                            <button
-                              onClick={() => {
-                                const newSets = [
-                                  ...exercise.sets,
-                                  { repsTarget: 8 },
-                                ];
-                                updateExerciseSets(dayIndex, exIndex, newSets);
-                              }}
-                              className="btn btn-ghost p-1"
-                            >
-                              <Plus className="w-4 h-4" />
-                            </button>
-                            {exercise.sets.length > 1 && (
+                              ))}
+                            </div>
+
+                            {/* Add/Remove Set Buttons */}
+                            <div className="flex gap-2 pt-1">
                               <button
                                 onClick={() => {
-                                  const newSets = exercise.sets.slice(0, -1);
-                                  updateExerciseSets(
-                                    dayIndex,
-                                    exIndex,
-                                    newSets
-                                  );
+                                  const newSets = [
+                                    ...exercise.sets,
+                                    { repsTarget: 8 },
+                                  ];
+                                  updateExerciseSets(dayIndex, exIndex, newSets);
                                 }}
-                                className="btn btn-ghost p-1 text-muted hover:text-danger"
+                                className="btn btn-secondary text-xs py-1.5 px-3"
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Plus className="w-3.5 h-3.5" />
+                                Add Set
                               </button>
-                            )}
+                              {exercise.sets.length > 1 && (
+                                <button
+                                  onClick={() => {
+                                    const newSets = exercise.sets.slice(0, -1);
+                                    updateExerciseSets(
+                                      dayIndex,
+                                      exIndex,
+                                      newSets
+                                    );
+                                  }}
+                                  className="btn btn-ghost text-xs py-1.5 px-3 text-muted hover:text-danger hover:bg-danger/10"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  Remove Set
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}

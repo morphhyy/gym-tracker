@@ -19,6 +19,9 @@ export default function DashboardPage() {
   const todayTemplate = useQuery(api.plans.getTodayTemplate, { date: today });
   const recentSessions = useQuery(api.sessions.getRecentSessions, { limit: 5 });
   const weeklyStats = useQuery(api.progress.getWeeklySummary, { weeks: 4 });
+  const userData = useQuery(api.users.getCurrentUser);
+
+  const weightUnit = userData?.units || "lb";
 
   const isLoading =
     activePlan === undefined ||
@@ -150,7 +153,7 @@ export default function DashboardPage() {
               ? (thisWeekStats.totalVolume / 1000).toFixed(1) + "k"
               : "0"}
           </p>
-          <p className="text-muted-foreground text-xs">lbs lifted</p>
+          <p className="text-muted-foreground text-xs">{weightUnit} lifted</p>
         </div>
         <div className="card">
           <p className="text-muted-foreground text-sm mb-1">Volume Change</p>

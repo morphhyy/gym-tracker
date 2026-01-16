@@ -25,7 +25,9 @@ import { format, parseISO } from "date-fns";
 export default function ProgressPage() {
   const weeklyStats = useQuery(api.progress.getWeeklySummary, { weeks: 12 });
   const exerciseStats = useQuery(api.progress.getAllExerciseStats);
+  const userData = useQuery(api.users.getCurrentUser);
 
+  const weightUnit = userData?.units || "lb";
   const isLoading = weeklyStats === undefined || exerciseStats === undefined;
 
   if (isLoading) {
@@ -78,7 +80,7 @@ export default function ProgressPage() {
         <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
           <p className="font-medium mb-1">{label}</p>
           <p className="text-sm text-primary">
-            Volume: {payload[0].value}k lbs
+            Volume: {payload[0].value}k {weightUnit}
           </p>
         </div>
       );
@@ -117,7 +119,7 @@ export default function ProgressPage() {
           <p className="text-3xl font-bold">
             {thisWeek ? (thisWeek.totalVolume / 1000).toFixed(1) + "k" : "0"}
           </p>
-          <p className="text-sm text-muted-foreground">lbs lifted</p>
+          <p className="text-sm text-muted-foreground">{weightUnit} lifted</p>
         </div>
 
         <div className="card">
@@ -240,11 +242,11 @@ export default function ProgressPage() {
                           {exercise.bestWeight}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          lb best
+                          {weightUnit} best
                         </span>
                       </div>
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <span>Last: {exercise.lastWeight} lb</span>
+                        <span>Last: {exercise.lastWeight} {weightUnit}</span>
                         <span>
                           {(exercise.totalVolume / 1000).toFixed(1)}k vol
                         </span>

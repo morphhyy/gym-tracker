@@ -163,6 +163,7 @@ export const getTodayTemplate = query({
 export const createPlan = mutation({
   args: {
     name: v.string(),
+    isAIGenerated: v.optional(v.boolean()),
     days: v.array(
       v.object({
         weekday: v.number(),
@@ -184,6 +185,21 @@ export const createPlan = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
+
+    // If AI-generated plan, increment usage count (secure server-side increment)
+    if (args.isAIGenerated) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", userId))
+        .unique();
+
+      if (user) {
+        const currentUsage = user.aiUsageCount ?? 0;
+        await ctx.db.patch(user._id, {
+          aiUsageCount: currentUsage + 1,
+        });
+      }
+    }
 
     // Deactivate all existing plans
     const existingPlans = await ctx.db
