@@ -3,6 +3,7 @@
 import { SignInButton, SignUpButton, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Link from "next/link";
 import {
   Dumbbell,
   LineChart,
@@ -80,9 +81,11 @@ export default function LandingPage() {
                   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </button>
               </SignUpButton>
-              <button className="btn btn-secondary text-base px-8 py-3">
-                See How It Works
-              </button>
+              <Link href="/how-it-works">
+                <button className="btn btn-secondary text-base px-8 py-3">
+                  See How It Works
+                </button>
+              </Link>
             </div>
           </div>
         </div>
