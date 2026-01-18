@@ -19,7 +19,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAchievementToasts } from "@/app/components/achievement-toast";
 import { StreakBadge } from "@/app/components/streak-badge";
-import { useRestTimer } from "@/app/components/rest-timer";
 
 type SetLog = {
   exerciseId: Id<"exercises">;
@@ -46,7 +45,6 @@ export default function LogPage() {
   const userData = useQuery(api.users.getCurrentUser);
 
   const { showAchievements, AchievementToasts } = useAchievementToasts();
-  const { openTimer, RestTimer } = useRestTimer(userData?.defaultRestSeconds ?? 90);
 
   const weightUnit = userData?.units || "kg";
 
@@ -103,7 +101,7 @@ export default function LogPage() {
     }));
   };
 
-  const saveSet = async (exerciseId: Id<"exercises">, setIndex: number, restSeconds?: number) => {
+  const saveSet = async (exerciseId: Id<"exercises">, setIndex: number) => {
     const key = getSetKey(exerciseId, setIndex);
     const setData = setLogs[key];
     if (!setData || (setData.repsActual === 0 && setData.weight === 0)) return;
@@ -126,10 +124,6 @@ export default function LogPage() {
         ...prev,
         [key]: { ...prev[key], saved: true },
       }));
-
-      // Start rest timer
-      const defaultRest = userData?.defaultRestSeconds ?? 90;
-      openTimer(restSeconds ?? defaultRest);
     } catch (error) {
       console.error("Failed to save set:", error);
     }
@@ -225,9 +219,6 @@ export default function LogPage() {
 
       {/* Achievement Toasts */}
       <AchievementToasts />
-
-      {/* Rest Timer */}
-      <RestTimer />
 
       {/* Session Status */}
       {isCompleted && (

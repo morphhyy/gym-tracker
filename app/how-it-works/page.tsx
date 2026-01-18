@@ -20,7 +20,6 @@ import {
   Smartphone,
   Sparkles,
   Target,
-  Timer,
   TrendingUp,
   Trophy,
   Users,
@@ -749,38 +748,6 @@ export default function HowItWorksPage() {
                   <div>
                     <div className="font-medium">Weekly Goal Progress</div>
                     <div className="text-xs text-muted-foreground">Set 1-7 workouts per week</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Rest Timer */}
-            <div className="card">
-              <div className="w-14 h-14 bg-blue-500/20 rounded-2xl flex items-center justify-center mb-6">
-                <Timer className="w-8 h-8 text-blue-500" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Rest Timer</h3>
-              <p className="text-muted-foreground mb-4">
-                Never guess your rest periods again. After logging each set, an
-                automatic rest timer helps you maintain optimal recovery.
-              </p>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                  <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-blue-500" />
-                  </div>
-                  <div>
-                    <div className="font-medium">Auto-start Timer</div>
-                    <div className="text-xs text-muted-foreground">Starts after each logged set</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                  <div className="w-8 h-8 bg-cyan-500/20 rounded-full flex items-center justify-center">
-                    <Zap className="w-4 h-4 text-cyan-500" />
-                  </div>
-                  <div>
-                    <div className="font-medium">Adjustable Duration</div>
-                    <div className="text-xs text-muted-foreground">+15s/-15s quick adjustments</div>
                   </div>
                 </div>
               </div>
