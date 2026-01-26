@@ -726,10 +726,10 @@ export default function HowItWorksPage() {
               <div className="w-14 h-14 bg-orange-500/20 rounded-2xl flex items-center justify-center mb-6">
                 <Flame className="w-8 h-8 text-orange-500" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Workout Streaks</h3>
+              <h3 className="text-xl font-semibold mb-3">Smart Workout Streaks</h3>
               <p className="text-muted-foreground mb-4">
-                Build consistency with daily workout streaks. Track your current
-                streak, longest streak, and weekly workout goals.
+                Plan-aware streaks that understand your schedule. Rest days never
+                break your streak - only missed workout days do.
               </p>
               <div className="space-y-3">
                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
@@ -739,6 +739,15 @@ export default function HowItWorksPage() {
                   <div>
                     <div className="font-semibold text-orange-500">7 Day Streak</div>
                     <div className="text-xs text-muted-foreground">Week Warrior badge</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-green-500" />
+                  </div>
+                  <div>
+                    <div className="font-medium">Rest Day Protection</div>
+                    <div className="text-xs text-muted-foreground">Scheduled rest days are safe</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
