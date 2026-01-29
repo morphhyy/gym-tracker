@@ -170,7 +170,7 @@ export default function ProgressPage() {
 
         <div className="card">
           <div className="flex items-center gap-3 mb-2">
-            <Dumbbell className="w-5 h-5 text-secondary" />
+            <Dumbbell className="w-5 h-5 text-purple-400" />
             <span className="text-sm text-muted-foreground">Weekly Volume</span>
           </div>
           <p className="text-3xl font-bold">

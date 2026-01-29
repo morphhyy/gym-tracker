@@ -55,8 +55,8 @@ describe("formatWeight", () => {
     expect(formatWeight(60, "kg")).toBe("60 kg");
   });
 
-  it("defaults to lb", () => {
-    expect(formatWeight(225)).toBe("225 lb");
+  it("defaults to kg", () => {
+    expect(formatWeight(225)).toBe("225 kg");
   });
 });
 

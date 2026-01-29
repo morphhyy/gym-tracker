@@ -34,31 +34,37 @@ export function formatLargeNumber(num: number): string {
   return num.toString();
 }
 
-// Get day name from weekday number (0=Sunday, matches JS Date.getDay())
+// Get day name from weekday number (0=Monday, 6=Sunday - Monday-based)
 export function getDayName(weekday: number): string {
   const days = [
-    "Sunday",
     "Monday",
     "Tuesday",
     "Wednesday",
     "Thursday",
     "Friday",
     "Saturday",
+    "Sunday",
   ];
   return days[weekday] ?? "Unknown";
 }
 
-// Get short day name (0=Sunday)
+// Get short day name (0=Monday, 6=Sunday - Monday-based)
 export function getShortDayName(weekday: number): string {
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   return days[weekday] ?? "???";
+}
+
+// Convert JS weekday (0=Sunday) to Monday-based (0=Monday, 6=Sunday)
+export function jsWeekdayToMonday(jsWeekday: number): number {
+  return jsWeekday === 0 ? 6 : jsWeekday - 1;
 }
 
 // Generate progression suggestion
 export function getProgressionSuggestion(
   recentWeights: number[],
   recentReps: number[],
-  targetReps: number = 8
+  targetReps: number = 8,
+  weightUnit: "kg" | "lb" = "kg"
 ): {
   action: "increase" | "decrease" | "maintain";
   reason: string;
@@ -81,11 +87,11 @@ export function getProgressionSuggestion(
   const struggling = lastReps < targetReps - 2 && prevReps < targetReps - 2;
 
   if (weightStable && hittingReps) {
-    const increment = lastWeight >= 100 ? 5 : 2.5;
+    const increment = lastWeight > 100 ? 5 : 2.5;
     return {
       action: "increase",
       amount: increment,
-      reason: `Consistent performance! Try adding ${increment} lbs.`,
+      reason: `Consistent performance! Try adding ${increment} ${weightUnit}.`,
     };
   }
 

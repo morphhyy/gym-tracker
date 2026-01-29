@@ -178,8 +178,8 @@ export default function HowItWorksPage() {
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Dumbbell className="w-6 h-6 text-secondary" />
+                  <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Dumbbell className="w-6 h-6 text-purple-400" />
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">
@@ -378,8 +378,8 @@ export default function HowItWorksPage() {
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <CheckCircle2 className="w-6 h-6 text-secondary" />
+                  <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-400" />
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Real-time Saves</h3>
@@ -457,8 +457,8 @@ export default function HowItWorksPage() {
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <TrendingUp className="w-6 h-6 text-secondary" />
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="w-6 h-6 text-blue-400" />
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">
@@ -697,8 +697,8 @@ export default function HowItWorksPage() {
             </div>
 
             <div className="card">
-              <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center mb-4">
-                <Smartphone className="w-6 h-6 text-secondary" />
+              <div className="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center mb-4">
+                <Smartphone className="w-6 h-6 text-pink-400" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Mobile Optimized</h3>
               <p className="text-muted-foreground text-sm">

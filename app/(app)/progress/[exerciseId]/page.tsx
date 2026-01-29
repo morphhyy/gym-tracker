@@ -152,36 +152,36 @@ export default function ExerciseProgressPage() {
       {/* Suggestion Card */}
       {suggestions.suggestion && (
         <div
-          className={`card flex items-start gap-4 ${suggestions.suggestion === "increase"
+          className={`card flex items-start gap-3 sm:gap-4 ${suggestions.suggestion === "increase"
             ? "bg-primary-muted border-primary/30"
             : suggestions.suggestion === "decrease"
               ? "bg-danger-muted border-danger/30"
-              : "bg-card"
+              : "bg-indigo-500/10 border-indigo-500/30"
             }`}
         >
           <div
-            className={`w-12 h-12 rounded-xl flex items-center justify-center ${suggestions.suggestion === "increase"
+            className={`w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-xl flex items-center justify-center ${suggestions.suggestion === "increase"
               ? "bg-primary/20"
               : suggestions.suggestion === "decrease"
                 ? "bg-danger/20"
-                : "bg-secondary/20"
+                : "bg-indigo-500/20"
               }`}
           >
             {suggestions.suggestion === "increase" ? (
-              <TrendingUp className="w-6 h-6 text-primary" />
+              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
             ) : suggestions.suggestion === "decrease" ? (
-              <TrendingDown className="w-6 h-6 text-danger" />
+              <TrendingDown className="w-5 h-5 sm:w-6 sm:h-6 text-danger" />
             ) : (
-              <Target className="w-6 h-6 text-secondary" />
+              <Target className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-400" />
             )}
           </div>
-          <div>
+          <div className="min-w-0">
             <h3
               className={`font-semibold ${suggestions.suggestion === "increase"
                 ? "text-primary"
                 : suggestions.suggestion === "decrease"
                   ? "text-danger"
-                  : "text-secondary"
+                  : "text-indigo-400"
                 }`}
             >
               {suggestions.suggestion === "increase"
@@ -199,7 +199,7 @@ export default function ExerciseProgressPage() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <div className="card bg-gradient-to-br from-primary/10 to-transparent border-primary/20">
+        <div className="card bg-linear-to-br from-primary/10 to-transparent border-primary/20">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
               <Dumbbell className="w-4 h-4 text-primary" />
@@ -226,7 +226,7 @@ export default function ExerciseProgressPage() {
           )}
         </div>
 
-        <div className="card bg-gradient-to-br from-amber-500/10 to-transparent border-amber-500/20">
+        <div className="card bg-linear-to-br from-amber-500/10 to-transparent border-amber-500/20">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
               <Target className="w-4 h-4 text-amber-500" />
@@ -239,7 +239,7 @@ export default function ExerciseProgressPage() {
           </div>
         </div>
 
-        <div className="card bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20">
+        <div className="card bg-linear-to-br from-blue-500/10 to-transparent border-blue-500/20">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
               <TrendingUp className="w-4 h-4 text-blue-500" />

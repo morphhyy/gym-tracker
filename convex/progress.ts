@@ -266,6 +266,13 @@ export const getExerciseSuggestions = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) return { suggestion: null, recentData: [] };
 
+    // Get user's preferred unit
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", userId))
+      .first();
+    const weightUnit = user?.units ?? "kg";
+
     // Get last 4 sessions for this exercise
     const sessions = await ctx.db
       .query("sessions")
@@ -328,7 +335,7 @@ export const getExerciseSuggestions = query({
       return {
         suggestion: "increase",
         amount: increment,
-        reason: `You've been consistent at ${latestTopSet.weight} lbs for ${exerciseName}. Try adding ${increment} lbs next session!`,
+        reason: `You've been consistent at ${latestTopSet.weight} ${weightUnit} for ${exerciseName}. Try adding ${increment} ${weightUnit} next session!`,
       };
     } else if (latestTopSet.repsActual < 5 && previousTopSet.repsActual < 5) {
       // Struggling - suggest deload
@@ -336,12 +343,12 @@ export const getExerciseSuggestions = query({
       return {
         suggestion: "decrease",
         amount: latestTopSet.weight - deloadWeight,
-        reason: `You've been struggling with reps on ${exerciseName}. Consider dropping to ${deloadWeight} lbs and building back up.`,
+        reason: `You've been struggling with reps on ${exerciseName}. Consider dropping to ${deloadWeight} ${weightUnit} and building back up.`,
       };
     } else {
       return {
         suggestion: "maintain",
-        reason: `Keep working at ${latestTopSet.weight} lbs for ${exerciseName}. You're making progress!`,
+        reason: `Keep working at ${latestTopSet.weight} ${weightUnit} for ${exerciseName}. You're making progress!`,
       };
     }
   },

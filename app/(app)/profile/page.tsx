@@ -119,17 +119,15 @@ export default function ProfilePage() {
             <div className="flex gap-2">
               <Button
                 onClick={() => setUnits("lb")}
-                className={`btn flex-1 ${
-                  units === "lb" ? "btn-primary" : "btn-secondary"
-                }`}
+                className={`btn flex-1 ${units === "lb" ? "btn-primary" : "btn-secondary"
+                  }`}
               >
                 Pounds (lb)
               </Button>
               <Button
                 onClick={() => setUnits("kg")}
-                className={`btn flex-1 ${
-                  units === "kg" ? "btn-primary" : "btn-secondary"
-                }`}
+                className={`btn flex-1 ${units === "kg" ? "btn-primary" : "btn-secondary"
+                  }`}
               >
                 Kilograms (kg)
               </Button>
@@ -138,7 +136,7 @@ export default function ProfilePage() {
 
           {/* Weekly Goal */}
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+            <label className="text-sm font-medium mb-2 flex items-center gap-2">
               <Target className="w-4 h-4" />
               Weekly Workout Goal
             </label>
@@ -151,11 +149,10 @@ export default function ProfilePage() {
                   key={num}
                   type="button"
                   onClick={() => setWeeklyGoal({ goal: num })}
-                  className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                    userData?.weeklyGoal === num
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-card hover:bg-card-hover border border-border"
-                  }`}
+                  className={`w-10 h-10 rounded-lg font-medium transition-colors ${userData?.weeklyGoal === num
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-card hover:bg-card-hover border border-border"
+                    }`}
                 >
                   {num}
                 </button>
@@ -181,7 +178,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="flex justify-end mt-6 pt-6 border-t border-border">
+        <div className="flex justify-end mt-4 border-border">
           <Button
             onClick={handleSave}
             disabled={isSaving}

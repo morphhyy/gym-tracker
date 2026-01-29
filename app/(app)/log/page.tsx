@@ -342,7 +342,7 @@ function LogPageContent() {
       {!todayTemplate?.day || todayTemplate.exercises.length === 0 ? (
         <div className="card text-center py-16">
           <div className="w-16 h-16 bg-card rounded-2xl flex items-center justify-center mx-auto mb-4 border border-border">
-            <Calendar className="w-8 h-8 text-muted" />
+            <Calendar className="w-8 h-8 text-blue-400" />
           </div>
           <h2 className="text-xl font-semibold mb-2">
             {todayTemplate?.plan ? "Rest Day" : "No Workout Plan"}
