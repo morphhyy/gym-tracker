@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser, useClerk } from "@clerk/nextjs";
-import { User, Settings, LogOut, Save, Check } from "lucide-react";
+import { User, Settings, LogOut, Save, Check, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
@@ -12,6 +12,7 @@ export default function ProfilePage() {
   const { signOut } = useClerk();
   const userData = useQuery(api.users.getCurrentUser);
   const upsertProfile = useMutation(api.users.upsertProfile);
+  const setWeeklyGoal = useMutation(api.streaks.setWeeklyGoal);
 
   const [displayName, setDisplayName] = useState("");
   const [units, setUnits] = useState<"lb" | "kg">("kg");
@@ -133,6 +134,36 @@ export default function ProfilePage() {
                 Kilograms (kg)
               </Button>
             </div>
+          </div>
+
+          {/* Weekly Goal */}
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+              <Target className="w-4 h-4" />
+              Weekly Workout Goal
+            </label>
+            <p className="text-xs text-muted-foreground mb-3">
+              Auto-synced when you create or switch plans. You can also set it manually.
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              {[1, 2, 3, 4, 5, 6, 7].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => setWeeklyGoal({ goal: num })}
+                  className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                    userData?.weeklyGoal === num
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card hover:bg-card-hover border border-border"
+                  }`}
+                >
+                  {num}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {userData?.weeklyGoal ?? 3} day{(userData?.weeklyGoal ?? 3) !== 1 ? "s" : ""} per week
+            </p>
           </div>
 
           {/* Goals */}

@@ -1,9 +1,10 @@
 "use client";
 
-import { SignUpButton, useAuth } from "@clerk/nextjs";
+import { SignInButton, SignUpButton } from "@clerk/nextjs";
 import {
   ArrowRight,
   BarChart3,
+  Bell,
   Brain,
   Calendar,
   CheckCircle2,
@@ -14,18 +15,24 @@ import {
   Flame,
   LineChart,
   Medal,
+  MessageSquare,
   Repeat,
+  Rocket,
   Share2,
   Shield,
   Smartphone,
   Sparkles,
   Target,
+  Timer,
+  TrendingDown,
   TrendingUp,
   Trophy,
   Users,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { DumbbellIcon } from "@/app/components/dumbbell-icon";
+import { FeedbackButton } from "@/app/components/feedback-dialog";
 
 export default function HowItWorksPage() {
   return (
@@ -34,14 +41,17 @@ export default function HowItWorksPage() {
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Dumbbell className="w-6 h-6 text-background" />
-            </div>
+            <DumbbellIcon />
             <span className="text-xl font-bold tracking-tight">GymForge</span>
           </Link>
-          <SignUpButton mode="modal">
-            <button className="btn btn-primary">Get Started Free</button>
-          </SignUpButton>
+          <div className="flex items-center gap-3">
+            <SignInButton mode="modal">
+              <button className="btn btn-ghost">Sign In</button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button className="btn btn-primary">Get Started</button>
+            </SignUpButton>
+          </div>
         </div>
       </nav>
 
@@ -261,6 +271,7 @@ export default function HowItWorksPage() {
                   {[
                     {
                       name: "Bench Press",
+                      suggestion: { type: "increase", weight: 180 },
                       sets: [
                         { weight: 135, reps: 10 },
                         { weight: 155, reps: 8 },
@@ -269,6 +280,7 @@ export default function HowItWorksPage() {
                     },
                     {
                       name: "Incline Dumbbell Press",
+                      suggestion: { type: "maintain", weight: null },
                       sets: [
                         { weight: 50, reps: 10 },
                         { weight: 55, reps: 8 },
@@ -281,9 +293,22 @@ export default function HowItWorksPage() {
                     >
                       <div className="flex items-center justify-between mb-3">
                         <span className="font-medium">{exercise.name}</span>
-                        <span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded">
-                          {exercise.sets.length} sets logged
-                        </span>
+                        <div className="flex items-center gap-2">
+                          {exercise.suggestion.type === "increase" && (
+                            <span className="flex items-center gap-1 text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded-full">
+                              <TrendingUp className="w-3 h-3" />
+                              {exercise.suggestion.weight} lb
+                            </span>
+                          )}
+                          {exercise.suggestion.type === "maintain" && (
+                            <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
+                              Maintain
+                            </span>
+                          )}
+                          <span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded">
+                            {exercise.sets.length} sets logged
+                          </span>
+                        </div>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         {exercise.sets.map((set, i) => (
@@ -374,6 +399,19 @@ export default function HowItWorksPage() {
                     <p className="text-muted-foreground text-sm">
                       Forgot to log yesterday? No problem. You can log workouts
                       for any past date to keep your history complete.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="w-6 h-6 text-green-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-1">Inline Overload Suggestions</h3>
+                    <p className="text-muted-foreground text-sm">
+                      See smart weight suggestions right next to each exercise.
+                      Green badges suggest increasing weight, orange for deloading.
                     </p>
                   </div>
                 </div>
@@ -571,8 +609,8 @@ export default function HowItWorksPage() {
               </h2>
               <p className="text-muted-foreground text-lg mb-8">
                 Our algorithm analyzes your recent performance and provides
-                actionable suggestions. Know exactly when to push harder and
-                when to recover.
+                actionable suggestions. See them inline on your workout log or
+                dive deep on the progress page.
               </p>
 
               <div className="space-y-6">
@@ -590,14 +628,27 @@ export default function HowItWorksPage() {
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Repeat className="w-6 h-6 text-blue-500" />
+                  <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <TrendingDown className="w-6 h-6 text-orange-500" />
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Deload Detection</h3>
                     <p className="text-muted-foreground text-sm">
                       If you&apos;re struggling with reps, we suggest a 10%
                       deload to help you recover and come back stronger.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 bg-primary-muted rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-1">Inline Badges</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Suggestions appear as badges right next to each exercise
+                      on your log page. No need to leave your workout flow.
                     </p>
                   </div>
                 </div>
@@ -955,6 +1006,120 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
+      {/* Upcoming Features */}
+      <section className="py-20 px-6 bg-card/50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 rounded-full text-cyan-400 text-sm font-medium mb-4">
+              <Rocket className="w-4 h-4" />
+              Coming Soon
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+              Upcoming Features
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              We&apos;re constantly improving GymForge. Here&apos;s what&apos;s on
+              the roadmap.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="card border-dashed border-2 border-border/50 bg-transparent">
+              <div className="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center mb-4">
+                <Timer className="w-6 h-6 text-cyan-500" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Rest Timer</h3>
+              <p className="text-muted-foreground text-sm">
+                Built-in rest timer between sets with customizable durations.
+                Get notified when it&apos;s time for your next set.
+              </p>
+              <span className="inline-block mt-4 text-xs bg-cyan-500/10 text-cyan-400 px-2 py-1 rounded-full">
+                In Development
+              </span>
+            </div>
+
+            <div className="card border-dashed border-2 border-border/50 bg-transparent">
+              <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4">
+                <MessageSquare className="w-6 h-6 text-purple-500" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Exercise Notes</h3>
+              <p className="text-muted-foreground text-sm">
+                Add notes to individual exercises or sets. Track form cues,
+                pain points, or things to remember for next time.
+              </p>
+              <span className="inline-block mt-4 text-xs bg-purple-500/10 text-purple-400 px-2 py-1 rounded-full">
+                Planned
+              </span>
+            </div>
+
+            <div className="card border-dashed border-2 border-border/50 bg-transparent">
+              <div className="w-12 h-12 bg-pink-500/10 rounded-xl flex items-center justify-center mb-4">
+                <BarChart3 className="w-6 h-6 text-pink-500" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Workout History</h3>
+              <p className="text-muted-foreground text-sm">
+                Browse past workouts in a calendar view. Quickly review what
+                you did on any given day and track patterns over time.
+              </p>
+              <span className="inline-block mt-4 text-xs bg-pink-500/10 text-pink-400 px-2 py-1 rounded-full">
+                Planned
+              </span>
+            </div>
+
+            <div className="card border-dashed border-2 border-border/50 bg-transparent">
+              <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center mb-4">
+                <Bell className="w-6 h-6 text-amber-500" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Workout Reminders</h3>
+              <p className="text-muted-foreground text-sm">
+                Push notifications to remind you of upcoming workouts. Never
+                miss a scheduled training day again.
+              </p>
+              <span className="inline-block mt-4 text-xs bg-amber-500/10 text-amber-400 px-2 py-1 rounded-full">
+                Exploring
+              </span>
+            </div>
+
+            <div className="card border-dashed border-2 border-border/50 bg-transparent">
+              <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-green-500" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Social Features</h3>
+              <p className="text-muted-foreground text-sm">
+                Follow friends, share PRs, and compete on leaderboards. Turn
+                fitness into a social experience.
+              </p>
+              <span className="inline-block mt-4 text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded-full">
+                Exploring
+              </span>
+            </div>
+
+            <div className="card border-dashed border-2 border-border/50 bg-transparent">
+              <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-4">
+                <Repeat className="w-6 h-6 text-blue-500" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Superset Support</h3>
+              <p className="text-muted-foreground text-sm">
+                Group exercises into supersets, circuits, or drop sets. Log
+                them together for a more efficient workout flow.
+              </p>
+              <span className="inline-block mt-4 text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded-full">
+                Planned
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-12 p-6 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl border border-border text-center">
+            <h3 className="font-semibold mb-2">Have a Feature Request?</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              We&apos;d love to hear your ideas. Share your feedback and help
+              shape the future of GymForge.
+            </p>
+            <FeedbackButton />
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-24 px-6">
         <div className="max-w-4xl mx-auto text-center">
@@ -985,9 +1150,7 @@ export default function HowItWorksPage() {
       <footer className="border-t border-border py-8 px-6">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Dumbbell className="w-4 h-4 text-background" />
-            </div>
+            <DumbbellIcon />
             <span className="font-semibold">GymForge</span>
           </div>
           <p className="text-muted-foreground text-sm">

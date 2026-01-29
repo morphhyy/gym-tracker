@@ -2,7 +2,7 @@
 
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
-import { differenceInDays, format, parseISO } from "date-fns";
+import { format, parseISO } from "date-fns";
 import {
   ArrowRight,
   Calendar,
@@ -69,15 +69,6 @@ const muscleColors: Record<string, { badge: string; progress: string }> = {
   Other: { badge: "bg-muted text-muted-foreground border-muted", progress: "bg-muted-foreground" },
 };
 
-// Level system based on weight
-function getLevel(weight: number) {
-  if (weight >= 100) return { level: 5, name: "Elite", color: "text-yellow-500", nextThreshold: null, prevThreshold: 100 };
-  if (weight >= 75) return { level: 4, name: "Advanced", color: "text-purple-500", nextThreshold: 100, prevThreshold: 75 };
-  if (weight >= 50) return { level: 3, name: "Intermediate", color: "text-blue-500", nextThreshold: 75, prevThreshold: 50 };
-  if (weight >= 25) return { level: 2, name: "Beginner", color: "text-green-500", nextThreshold: 50, prevThreshold: 25 };
-  return { level: 1, name: "Novice", color: "text-muted-foreground", nextThreshold: 25, prevThreshold: 0 };
-}
-
 // Trend calculation
 function getTrend(bestWeight: number, oldestWeight: number) {
   if (oldestWeight === 0) return { type: "steady" as const, label: "New", icon: Minus };
@@ -85,14 +76,6 @@ function getTrend(bestWeight: number, oldestWeight: number) {
   if (ratio > 1.05) return { type: "improving" as const, label: "Improving", icon: TrendingUp };
   if (ratio < 0.95) return { type: "focus" as const, label: "Focus needed", icon: TrendingDown };
   return { type: "steady" as const, label: "Steady", icon: Minus };
-}
-
-// Days ago helper
-function getDaysAgo(dateString: string) {
-  const days = differenceInDays(new Date(), parseISO(dateString));
-  if (days === 0) return "Today";
-  if (days === 1) return "Yesterday";
-  return `${days} days ago`;
 }
 
 // Type for exercise stats from the query
@@ -109,123 +92,6 @@ type ExerciseStatItem = {
   oldestWeight: number;
   recentPR: boolean;
 };
-
-// Gamified Exercise Progress Card
-function ExerciseProgressCard({
-  exercise,
-  weightUnit,
-}: {
-  exercise: ExerciseStatItem;
-  weightUnit: string;
-}) {
-  const muscleGroup = exercise.muscleGroup || "Other";
-  const colors = muscleColors[muscleGroup] || muscleColors.Other;
-  const level = getLevel(exercise.bestWeight);
-  const trend = getTrend(exercise.bestWeight, exercise.oldestWeight);
-  const daysAgo = getDaysAgo(exercise.lastDate);
-
-  // Calculate progress percentage to next level
-  let progressPercent = 100;
-  if (level.nextThreshold !== null) {
-    const range = level.nextThreshold - level.prevThreshold;
-    const current = exercise.bestWeight - level.prevThreshold;
-    progressPercent = Math.min(100, Math.max(0, (current / range) * 100));
-  }
-
-  const TrendIcon = trend.icon;
-
-  return (
-    <Link
-      href={`/progress/${exercise.exerciseId}`}
-      className="card card-hover group block"
-    >
-      {/* Header row */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className={`px-2 py-0.5 text-xs font-medium rounded-full border shrink-0 ${colors.badge}`}>
-            {muscleGroup}
-          </span>
-          {exercise.recentPR && (
-            <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-500/15 text-yellow-500 border border-yellow-500/30 shrink-0">
-              <Trophy className="w-3 h-3" />
-              PR
-            </span>
-          )}
-        </div>
-        <ArrowRight className="w-4 h-4 text-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-      </div>
-
-      {/* Exercise name and trend */}
-      <h4 className="font-semibold text-base truncate mb-1">
-        {exercise.exerciseName}
-      </h4>
-      <div className="flex items-center gap-2 text-sm mb-4">
-        <TrendIcon
-          className={`w-3.5 h-3.5 ${trend.type === "improving"
-              ? "text-green-500"
-              : trend.type === "focus"
-                ? "text-orange-500"
-                : "text-muted-foreground"
-            }`}
-        />
-        <span
-          className={`${trend.type === "improving"
-              ? "text-green-500"
-              : trend.type === "focus"
-                ? "text-orange-500"
-                : "text-muted-foreground"
-            }`}
-        >
-          {trend.label}
-        </span>
-        <span className="text-muted-foreground">•</span>
-        <span className="text-muted-foreground">{daysAgo}</span>
-      </div>
-
-      {/* Stats grid */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <div>
-          <p className="text-xl font-bold">{exercise.bestWeight}</p>
-          <p className="text-xs text-muted-foreground">{weightUnit} best</p>
-        </div>
-        <div>
-          <p className="text-xl font-bold">{exercise.sessionCount}</p>
-          <p className="text-xs text-muted-foreground">Sessions</p>
-        </div>
-        <div>
-          <p className="text-xl font-bold">
-            {exercise.totalVolume >= 1000
-              ? `${(exercise.totalVolume / 1000).toFixed(1)}k`
-              : exercise.totalVolume}
-          </p>
-          <p className="text-xs text-muted-foreground">Volume</p>
-        </div>
-      </div>
-
-      {/* Progress bar and level */}
-      <div>
-        <div className="flex items-center justify-between text-xs mb-1.5">
-          <span className={`font-medium ${level.color}`}>Level {level.level}</span>
-          <span className="text-muted-foreground">{level.name}</span>
-        </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${colors.progress}`}
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-        {level.nextThreshold !== null && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {exercise.bestWeight}/{level.nextThreshold} {weightUnit} to Level {level.level + 1}
-          </p>
-        )}
-        {level.nextThreshold === null && (
-          <p className="text-xs text-yellow-500 mt-1">Max level reached!</p>
-        )}
-      </div>
-    </Link>
-  );
-}
 
 export default function ProgressPage() {
   const weeklyStats = useQuery(api.progress.getWeeklySummary, { weeks: 12 });
@@ -409,43 +275,143 @@ export default function ProgressPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {Object.entries(exercisesByMuscle).map(([muscleGroup, exercises]: [string, typeof exerciseStats]) => (
-              <div key={muscleGroup}>
-                <h3 className="text-sm font-semibold text-muted uppercase tracking-wider mb-3">
-                  {muscleGroup}
-                </h3>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {exercises.map((exercise: { exerciseId: string; exerciseName: string; bestWeight: number; lastWeight: number; totalVolume: number }) => (
-                    <Link
-                      key={exercise.exerciseId}
-                      href={`/progress/${exercise.exerciseId}`}
-                      className="card card-hover group"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium truncate pr-2">
-                          {exercise.exerciseName}
-                        </h4>
-                        <ArrowRight className="w-4 h-4 text-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-primary">
-                          {exercise.bestWeight}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {weightUnit} best
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <span>Last: {exercise.lastWeight} {weightUnit}</span>
-                        <span>
-                          {(exercise.totalVolume / 1000).toFixed(1)}k vol
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
+            {Object.entries(exercisesByMuscle).map(([muscleGroup, exercises]: [string, typeof exerciseStats]) => {
+              const colors = muscleColors[muscleGroup] || muscleColors.Other;
+              return (
+                <div key={muscleGroup} className="card">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${colors.badge}`}>
+                      {muscleGroup}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {exercises.length} exercise{exercises.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  
+                  {/* Table for desktop */}
+                  <div className="hidden sm:block overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-border text-left text-sm text-muted-foreground">
+                          <th className="pb-3 font-medium">Exercise</th>
+                          <th className="pb-3 font-medium text-right">Best</th>
+                          <th className="pb-3 font-medium text-right">Last</th>
+                          <th className="pb-3 font-medium text-right">Sessions</th>
+                          <th className="pb-3 font-medium text-right">Volume</th>
+                          <th className="pb-3 font-medium text-center">Trend</th>
+                          <th className="pb-3 w-8"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {exercises.map((exercise: ExerciseStatItem) => {
+                          const trend = getTrend(exercise.bestWeight, exercise.oldestWeight);
+                          const TrendIcon = trend.icon;
+                          return (
+                            <tr
+                              key={exercise.exerciseId}
+                              className="border-b border-border/50 last:border-0 group cursor-pointer hover:bg-card-hover transition-colors"
+                              onClick={() => window.location.href = `/progress/${exercise.exerciseId}`}
+                            >
+                              <td className="py-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{exercise.exerciseName}</span>
+                                  {exercise.recentPR && (
+                                    <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium rounded bg-yellow-500/15 text-yellow-500">
+                                      <Trophy className="w-3 h-3" />
+                                      PR
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3 text-right">
+                                <span className="font-bold text-primary">{exercise.bestWeight}</span>
+                                <span className="text-muted-foreground ml-1">{weightUnit}</span>
+                              </td>
+                              <td className="py-3 text-right text-muted-foreground">
+                                {exercise.lastWeight} {weightUnit}
+                              </td>
+                              <td className="py-3 text-right text-muted-foreground">
+                                {exercise.sessionCount}
+                              </td>
+                              <td className="py-3 text-right text-muted-foreground">
+                                {exercise.totalVolume >= 1000
+                                  ? `${(exercise.totalVolume / 1000).toFixed(1)}k`
+                                  : exercise.totalVolume}
+                              </td>
+                              <td className="py-3">
+                                <div className="flex items-center justify-center gap-1">
+                                  <TrendIcon
+                                    className={`w-4 h-4 ${
+                                      trend.type === "improving"
+                                        ? "text-green-500"
+                                        : trend.type === "focus"
+                                          ? "text-orange-500"
+                                          : "text-muted-foreground"
+                                    }`}
+                                  />
+                                  <span
+                                    className={`text-sm ${
+                                      trend.type === "improving"
+                                        ? "text-green-500"
+                                        : trend.type === "focus"
+                                          ? "text-orange-500"
+                                          : "text-muted-foreground"
+                                    }`}
+                                  >
+                                    {trend.label}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="py-3">
+                                <ArrowRight className="w-4 h-4 text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* List for mobile */}
+                  <div className="sm:hidden divide-y divide-border/50">
+                    {exercises.map((exercise: ExerciseStatItem) => {
+                      const trend = getTrend(exercise.bestWeight, exercise.oldestWeight);
+                      const TrendIcon = trend.icon;
+                      return (
+                        <Link
+                          key={exercise.exerciseId}
+                          href={`/progress/${exercise.exerciseId}`}
+                          className="flex items-center justify-between py-3 group"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium truncate">{exercise.exerciseName}</span>
+                              {exercise.recentPR && (
+                                <Trophy className="w-3.5 h-3.5 text-yellow-500 flex-shrink-0" />
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                              <span className="font-semibold text-primary">{exercise.bestWeight} {weightUnit}</span>
+                              <span>Last: {exercise.lastWeight}</span>
+                              <TrendIcon
+                                className={`w-3.5 h-3.5 ${
+                                  trend.type === "improving"
+                                    ? "text-green-500"
+                                    : trend.type === "focus"
+                                      ? "text-orange-500"
+                                      : "text-muted-foreground"
+                                }`}
+                              />
+                            </div>
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-muted flex-shrink-0 ml-2" />
+                        </Link>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -355,3 +355,45 @@ export const getLastWeightForExercise = query({
     return null;
   },
 });
+
+// Get last weights for multiple exercises (for pre-filling workout log)
+export const getLastWeightsForExercises = query({
+  args: { exerciseIds: v.array(v.id("exercises")) },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return {};
+
+    // Get recent completed sessions
+    const sessions = await ctx.db
+      .query("sessions")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .order("desc")
+      .filter((q) => q.neq(q.field("completedAt"), undefined))
+      .take(20);
+
+    const lastWeights: Record<string, Record<number, number>> = {};
+
+    // For each exercise, find the most recent sets
+    for (const exerciseId of args.exerciseIds) {
+      for (const session of sessions) {
+        const sets = await ctx.db
+          .query("sessionSets")
+          .withIndex("by_session_exercise", (q) =>
+            q.eq("sessionId", session._id).eq("exerciseId", exerciseId)
+          )
+          .collect();
+
+        if (sets.length > 0) {
+          // Store weights for each set index
+          lastWeights[exerciseId] = {};
+          for (const set of sets) {
+            lastWeights[exerciseId][set.setIndex] = set.weight;
+          }
+          break; // Found the most recent session with this exercise
+        }
+      }
+    }
+
+    return lastWeights;
+  },
+});

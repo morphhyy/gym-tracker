@@ -5,12 +5,17 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import {
-   Dumbbell,
+  Dumbbell,
   LineChart,
   Calendar,
   Target,
   ArrowRight,
   Zap,
+  Flame,
+  Trophy,
+  TrendingUp,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 import { DumbbellIcon } from "@/app/components/dumbbell-icon";
 
@@ -142,64 +147,145 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Feature 4 */}
+            {/* Feature 4 - Smart Suggestions */}
             <div className="card group hover:border-primary/50 transition-colors">
-              <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Target className="w-6 h-6 text-secondary" />
+              <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <TrendingUp className="w-6 h-6 text-green-500" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Smart Suggestions</h3>
+              <h3 className="text-xl font-semibold mb-2">Inline Suggestions</h3>
               <p className="text-muted-foreground">
-                Get personalized tips on when to add weight or take a deload
-                based on your actual performance data.
+                See weight suggestions right next to each exercise. Green for
+                increase, orange for deload—based on your performance.
               </p>
             </div>
 
-            {/* Feature 5 */}
+            {/* Feature 5 - Streaks */}
             <div className="card group hover:border-primary/50 transition-colors">
-              <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg
-                  className="w-6 h-6 text-accent"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                  />
-                </svg>
+              <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Flame className="w-6 h-6 text-orange-500" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Mobile Ready</h3>
+              <h3 className="text-xl font-semibold mb-2">Smart Streaks</h3>
               <p className="text-muted-foreground">
-                Take GymForge to the gym floor. Fully responsive design that
-                works beautifully on any device.
+                Plan-aware streaks that understand your schedule. Rest days
+                never break your streak—only missed workout days do.
               </p>
             </div>
 
-            {/* Feature 6 */}
+            {/* Feature 6 - Achievements */}
             <div className="card group hover:border-primary/50 transition-colors">
-              <div className="w-12 h-12 bg-primary-muted rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg
-                  className="w-6 h-6 text-primary"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                  />
-                </svg>
+              <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Trophy className="w-6 h-6 text-yellow-500" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Secure & Private</h3>
+              <h3 className="text-xl font-semibold mb-2">Achievements</h3>
               <p className="text-muted-foreground">
-                Your workout data stays yours. Secure authentication and
-                encrypted storage keep your progress safe.
+                Unlock badges as you hit milestones. From your first PR to a
+                100-day streak, every achievement is celebrated.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Feature Highlight */}
+      <section className="py-24 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-violet-500/10 rounded-full text-violet-400 text-sm font-medium mb-6">
+                <Sparkles className="w-4 h-4" />
+                AI-Powered
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-bold mb-6">
+                Generate Your Perfect Plan in Seconds
+              </h2>
+              <p className="text-muted-foreground text-lg mb-8">
+                Describe your goals, experience level, and available days. Our
+                AI creates a scientifically-designed program tailored just for
+                you.
+              </p>
+              <div className="space-y-4">
+                {[
+                  "Personalized to your experience level",
+                  "Follows exercise science principles",
+                  "Balanced muscle group training",
+                  "Appropriate rep ranges for your goals",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-card rounded-2xl border border-border p-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-border mb-4">
+                <Sparkles className="w-5 h-5 text-violet-500" />
+                <span className="font-semibold">AI Plan Generator</span>
+              </div>
+              <div className="space-y-4">
+                <div className="p-3 bg-muted/50 rounded-lg text-sm">
+                  <span className="text-muted-foreground">Example prompt:</span>
+                  <p className="mt-1">
+                    &quot;I&apos;m intermediate, want to build muscle, can train
+                    4 days per week.&quot;
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-border">
+                  <div className="text-xs text-muted-foreground mb-3">
+                    Generated Plan:
+                  </div>
+                  <div className="space-y-2">
+                    {[
+                      "Monday: Push Day - 6 exercises",
+                      "Tuesday: Pull Day - 6 exercises",
+                      "Thursday: Legs - 5 exercises",
+                      "Friday: Upper Body - 6 exercises",
+                    ].map((day) => (
+                      <div key={day} className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-primary" />
+                        <span>{day}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof / Stats */}
+      <section className="py-16 px-6 bg-card/50 border-y border-border">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">
+                39+
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Pre-loaded Exercises
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">
+                100%
+              </div>
+              <div className="text-sm text-muted-foreground">Free to Use</div>
+            </div>
+            <div>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">
+                Real-time
+              </div>
+              <div className="text-sm text-muted-foreground">Cloud Sync</div>
+            </div>
+            <div>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">
+                Mobile
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Optimized Design
+              </div>
             </div>
           </div>
         </div>

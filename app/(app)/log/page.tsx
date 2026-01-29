@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useQuery, useMutation } from "convex/react";
+import { useSearchParams } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { format } from "date-fns";
@@ -14,6 +15,8 @@ import {
   Save,
   Trophy,
   Flame,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -23,18 +26,22 @@ import { StreakBadge } from "@/app/components/streak-badge";
 type SetLog = {
   exerciseId: Id<"exercises">;
   setIndex: number;
-  repsActual: number;
-  weight: number;
+  repsActual: number | null;
+  weight: number | null;
   saved: boolean;
 };
 
-export default function LogPage() {
+function LogPageContent() {
+  const searchParams = useSearchParams();
+  const dateParam = searchParams.get("date");
+  
   const [selectedDate, setSelectedDate] = useState(
-    format(new Date(), "yyyy-MM-dd")
+    dateParam || format(new Date(), "yyyy-MM-dd")
   );
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>({});
   const [completingSession, setCompletingSession] = useState(false);
   const [completedStreak, setCompletedStreak] = useState<number | null>(null);
+  const [hasInitializedWeights, setHasInitializedWeights] = useState(false);
 
   const todayTemplate = useQuery(api.plans.getTodayTemplate, {
     date: selectedDate,
@@ -44,6 +51,26 @@ export default function LogPage() {
   });
   const userData = useQuery(api.users.getCurrentUser);
 
+  // Get exercise IDs for querying last weights
+  const exerciseIds = useMemo(() => {
+    if (!todayTemplate?.exercises) return [];
+    return todayTemplate.exercises
+      .filter((e: { exercise?: { _id: Id<"exercises"> } | null }) => e.exercise?._id)
+      .map((e: { exercise?: { _id: Id<"exercises"> } | null }) => e.exercise!._id);
+  }, [todayTemplate?.exercises]);
+
+  // Query last weights for all exercises in today's workout
+  const lastWeights = useQuery(
+    api.sessions.getLastWeightsForExercises,
+    exerciseIds.length > 0 ? { exerciseIds } : "skip"
+  );
+
+  // Query suggestions for all exercises
+  const exerciseSuggestions = useQuery(
+    api.progress.getBatchExerciseSuggestions,
+    exerciseIds.length > 0 ? { exerciseIds } : "skip"
+  );
+
   const { showAchievements, AchievementToasts } = useAchievementToasts();
 
   const weightUnit = userData?.units || "kg";
@@ -52,25 +79,75 @@ export default function LogPage() {
   const logSet = useMutation(api.sessions.logSet);
   const completeSession = useMutation(api.sessions.completeSession);
 
-  // Initialize set logs from existing session data
+  // Sync with URL date param
   useEffect(() => {
-    if (sessionData?.sets) {
+    if (dateParam && dateParam !== selectedDate) {
+      setSelectedDate(dateParam);
+    }
+  }, [dateParam, selectedDate]);
+
+  // Reset initialization flag when date changes
+  useEffect(() => {
+    setHasInitializedWeights(false);
+  }, [selectedDate]);
+
+  // Initialize set logs from existing session data OR pre-fill with last weights
+  useEffect(() => {
+    if (sessionData?.sets && sessionData.sets.length > 0) {
+      // Session has logged sets - merge with existing local state to preserve unsaved entries
+      setSetLogs((prev) => {
+        const logs: Record<string, SetLog> = { ...prev };
+        for (const set of sessionData.sets) {
+          const key = `${set.exerciseId}-${set.setIndex}`;
+          // Only update if not in local state OR if local state is already saved (sync from DB)
+          // This preserves unsaved local edits
+          if (!prev[key] || prev[key].saved) {
+            logs[key] = {
+              exerciseId: set.exerciseId,
+              setIndex: set.setIndex,
+              repsActual: set.repsActual,
+              weight: set.weight,
+              saved: true,
+            };
+          }
+        }
+        return logs;
+      });
+      setHasInitializedWeights(true);
+    } else if (lastWeights && todayTemplate?.exercises && !hasInitializedWeights) {
+      // No session data yet - pre-fill weights from previous workouts
       const logs: Record<string, SetLog> = {};
-      for (const set of sessionData.sets) {
-        const key = `${set.exerciseId}-${set.setIndex}`;
-        logs[key] = {
-          exerciseId: set.exerciseId,
-          setIndex: set.setIndex,
-          repsActual: set.repsActual,
-          weight: set.weight,
-          saved: true,
-        };
+      for (const planExercise of todayTemplate.exercises) {
+        const exercise = planExercise.exercise;
+        if (!exercise) continue;
+
+        const exerciseLastWeights = lastWeights[exercise._id];
+        if (!exerciseLastWeights) continue;
+
+        for (let setIndex = 0; setIndex < planExercise.sets.length; setIndex++) {
+          const key = `${exercise._id}-${setIndex}`;
+          // Use the weight from the same set index, or fallback to set 0
+          const prefillWeight = exerciseLastWeights[setIndex] ?? exerciseLastWeights[0] ?? null;
+          if (prefillWeight !== null) {
+            logs[key] = {
+              exerciseId: exercise._id,
+              setIndex,
+              repsActual: null, // Don't pre-fill reps
+              weight: prefillWeight,
+              saved: false, // Not saved yet
+            };
+          }
+        }
       }
-      setSetLogs(logs);
-    } else {
+      if (Object.keys(logs).length > 0) {
+        setSetLogs(logs);
+      }
+      setHasInitializedWeights(true);
+    } else if (sessionData === null && !lastWeights) {
+      // No session and no last weights - clear logs
       setSetLogs({});
     }
-  }, [sessionData]);
+  }, [sessionData, lastWeights, todayTemplate?.exercises, hasInitializedWeights]);
 
   const handleDateChange = (direction: "prev" | "next") => {
     const date = new Date(selectedDate);
@@ -85,17 +162,17 @@ export default function LogPage() {
     exerciseId: Id<"exercises">,
     setIndex: number,
     field: "repsActual" | "weight",
-    value: number
+    value: number | null
   ) => {
     const key = getSetKey(exerciseId, setIndex);
     setSetLogs((prev) => ({
       ...prev,
       [key]: {
+        ...prev[key],
         exerciseId,
         setIndex,
-        repsActual: prev[key]?.repsActual ?? 0,
-        weight: prev[key]?.weight ?? 0,
-        [field]: value,
+        repsActual: field === "repsActual" ? value : (prev[key]?.repsActual ?? null),
+        weight: field === "weight" ? value : (prev[key]?.weight ?? null),
         saved: false,
       },
     }));
@@ -104,7 +181,8 @@ export default function LogPage() {
   const saveSet = async (exerciseId: Id<"exercises">, setIndex: number) => {
     const key = getSetKey(exerciseId, setIndex);
     const setData = setLogs[key];
-    if (!setData || (setData.repsActual === 0 && setData.weight === 0)) return;
+    // Only save if we have actual values
+    if (!setData || setData.repsActual === null || setData.weight === null) return;
 
     try {
       const sessionId = await getOrCreateSession({
@@ -116,8 +194,8 @@ export default function LogPage() {
         sessionId,
         exerciseId,
         setIndex,
-        repsActual: setData.repsActual,
-        weight: setData.weight,
+        repsActual: setData.repsActual ?? 0,
+        weight: setData.weight ?? 0,
       });
 
       setSetLogs((prev) => ({
@@ -155,7 +233,7 @@ export default function LogPage() {
   const isCompleted = sessionData?.completedAt != null;
 
   const totalSetsLogged = Object.values(setLogs).filter(
-    (s) => s.saved && s.weight > 0
+    (s) => s.saved && (s.weight ?? 0) > 0
   ).length;
   const totalSetsPlanned =
     todayTemplate?.exercises?.reduce(
@@ -311,13 +389,39 @@ export default function LogPage() {
                       <div className="w-10 h-10 bg-primary-muted rounded-xl flex items-center justify-center">
                         <Dumbbell className="w-5 h-5 text-primary" />
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <h3 className="font-semibold">{exercise.name}</h3>
                         <p className="text-sm text-muted-foreground">
                           {exercise.muscleGroup}
                           {exercise.equipment && ` • ${exercise.equipment}`}
                         </p>
                       </div>
+                      {/* Suggestion Badge */}
+                      {exerciseSuggestions?.[exercise._id]?.suggestion && !isCompleted && (
+                        <div
+                          className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                            exerciseSuggestions[exercise._id].suggestion === "increase"
+                              ? "bg-primary/10 text-primary"
+                              : exerciseSuggestions[exercise._id].suggestion === "decrease"
+                                ? "bg-orange-500/10 text-orange-500"
+                                : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {exerciseSuggestions[exercise._id].suggestion === "increase" ? (
+                            <>
+                              <TrendingUp className="w-3 h-3" />
+                              <span>{exerciseSuggestions[exercise._id].suggestedWeight} {weightUnit}</span>
+                            </>
+                          ) : exerciseSuggestions[exercise._id].suggestion === "decrease" ? (
+                            <>
+                              <TrendingDown className="w-3 h-3" />
+                              <span>{exerciseSuggestions[exercise._id].suggestedWeight} {weightUnit}</span>
+                            </>
+                          ) : (
+                            <span>Maintain</span>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Sets Table */}
@@ -363,15 +467,16 @@ export default function LogPage() {
                                   type="number"
                                   min="0"
                                   step="2.5"
-                                  value={setLog?.weight || ""}
-                                  onChange={(e) =>
+                                  value={setLog?.weight ?? ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
                                     updateSetLog(
                                       exercise._id,
                                       setIndex,
                                       "weight",
-                                      parseFloat(e.target.value) || 0
-                                    )
-                                  }
+                                      val === "" ? null : parseFloat(val)
+                                    );
+                                  }}
                                   disabled={isCompleted}
                                   className="input w-full text-center"
                                   placeholder={weightUnit}
@@ -384,15 +489,16 @@ export default function LogPage() {
                                   type="number"
                                   min="0"
                                   max="100"
-                                  value={setLog?.repsActual || ""}
-                                  onChange={(e) =>
+                                  value={setLog?.repsActual ?? ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
                                     updateSetLog(
                                       exercise._id,
                                       setIndex,
                                       "repsActual",
-                                      parseInt(e.target.value) || 0
-                                    )
-                                  }
+                                      val === "" ? null : parseInt(val)
+                                    );
+                                  }}
                                   disabled={isCompleted}
                                   className="input w-full text-center"
                                   placeholder="reps"
@@ -408,8 +514,10 @@ export default function LogPage() {
                                     }
                                     disabled={
                                       isSaved ||
-                                      !setLog?.weight ||
-                                      !setLog?.repsActual
+                                      setLog?.weight === null ||
+                                      setLog?.weight === undefined ||
+                                      setLog?.repsActual === null ||
+                                      setLog?.repsActual === undefined
                                     }
                                     className={`btn p-2 h-9 ${
                                       isSaved
@@ -458,5 +566,22 @@ export default function LogPage() {
         </>
       )}
     </div>
+  );
+}
+
+function LogPageFallback() {
+  return (
+    <div className="space-y-6">
+      <div className="h-8 w-48 bg-card rounded animate-pulse" />
+      <div className="card h-96 animate-pulse" />
+    </div>
+  );
+}
+
+export default function LogPage() {
+  return (
+    <Suspense fallback={<LogPageFallback />}>
+      <LogPageContent />
+    </Suspense>
   );
 }

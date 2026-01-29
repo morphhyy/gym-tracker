@@ -346,3 +346,96 @@ export const getExerciseSuggestions = query({
     }
   },
 });
+
+// Get suggestions for multiple exercises (batch query for log page)
+export const getBatchExerciseSuggestions = query({
+  args: { exerciseIds: v.array(v.id("exercises")) },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return {};
+
+    // Get recent sessions (enough to cover all exercises)
+    const sessions = await ctx.db
+      .query("sessions")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .order("desc")
+      .take(30);
+
+    const suggestions: Record<string, {
+      suggestion: "increase" | "maintain" | "decrease" | null;
+      suggestedWeight?: number;
+      lastWeight?: number;
+    }> = {};
+
+    for (const exerciseId of args.exerciseIds) {
+      // Get recent data for this exercise
+      const recentData: {
+        date: string;
+        sets: { repsActual: number; weight: number }[];
+      }[] = [];
+
+      for (const session of sessions) {
+        const sets = await ctx.db
+          .query("sessionSets")
+          .withIndex("by_session_exercise", (q) =>
+            q.eq("sessionId", session._id).eq("exerciseId", exerciseId)
+          )
+          .collect();
+
+        if (sets.length > 0) {
+          recentData.push({
+            date: session.date,
+            sets: sets.sort((a, b) => a.setIndex - b.setIndex),
+          });
+        }
+
+        if (recentData.length >= 4) break;
+      }
+
+      // Need at least 2 sessions to make a suggestion
+      if (recentData.length < 2) {
+        suggestions[exerciseId] = { suggestion: null };
+        continue;
+      }
+
+      // Analyze recent performance
+      const [latest, previous] = recentData.slice(0, 2);
+
+      const latestTopSet = latest.sets.reduce((best, set) =>
+        set.weight > best.weight ? set : best
+        , latest.sets[0]);
+
+      const previousTopSet = previous.sets.reduce((best, set) =>
+        set.weight > best.weight ? set : best
+        , previous.sets[0]);
+
+      const weightStable = Math.abs(latestTopSet.weight - previousTopSet.weight) < 5;
+      const repsMet = latestTopSet.repsActual >= 8;
+
+      if (weightStable && repsMet) {
+        // Ready to progress
+        const increment = latestTopSet.weight >= 100 ? 5 : 2.5;
+        suggestions[exerciseId] = {
+          suggestion: "increase",
+          suggestedWeight: latestTopSet.weight + increment,
+          lastWeight: latestTopSet.weight,
+        };
+      } else if (latestTopSet.repsActual < 5 && previousTopSet.repsActual < 5) {
+        // Struggling - suggest deload
+        const deloadWeight = Math.round(latestTopSet.weight * 0.9);
+        suggestions[exerciseId] = {
+          suggestion: "decrease",
+          suggestedWeight: deloadWeight,
+          lastWeight: latestTopSet.weight,
+        };
+      } else {
+        suggestions[exerciseId] = {
+          suggestion: "maintain",
+          lastWeight: latestTopSet.weight,
+        };
+      }
+    }
+
+    return suggestions;
+  },
+});

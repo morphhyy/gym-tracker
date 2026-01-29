@@ -129,4 +129,21 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_exercise", ["userId", "exerciseId"])
     .index("by_user_exercise_type", ["userId", "exerciseId", "recordType"]),
+
+  // Anonymous feedback submissions
+  feedback: defineTable({
+    message: v.string(),
+    category: v.optional(v.string()), // e.g., "feature_request", "bug", "general"
+    ipHash: v.optional(v.string()), // Hashed IP for rate limiting (anonymous)
+    userAgent: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_ip_hash", ["ipHash"]),
+
+  // Rate limiting tracker
+  rateLimits: defineTable({
+    identifier: v.string(), // Hashed IP or other identifier
+    action: v.string(), // e.g., "feedback"
+    count: v.number(),
+    windowStart: v.number(), // Timestamp of when the window started
+  }).index("by_identifier_action", ["identifier", "action"]),
 });

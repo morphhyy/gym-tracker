@@ -246,6 +246,16 @@ export const createPlan = mutation({
       }
     }
 
+    // Auto-sync weeklyGoal to match the number of workout days
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", userId))
+      .first();
+
+    if (user && args.days.length > 0) {
+      await ctx.db.patch(user._id, { weeklyGoal: args.days.length });
+    }
+
     return planId;
   },
 });
@@ -354,6 +364,21 @@ export const setActivePlan = mutation({
 
     // Activate the target plan
     await ctx.db.patch(args.planId, { active: true });
+
+    // Auto-sync weeklyGoal to match the number of workout days
+    const planDays = await ctx.db
+      .query("planDays")
+      .withIndex("by_plan", (q) => q.eq("planId", args.planId))
+      .collect();
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", userId))
+      .first();
+
+    if (user && planDays.length > 0) {
+      await ctx.db.patch(user._id, { weeklyGoal: planDays.length });
+    }
 
     return args.planId;
   },
@@ -575,6 +600,16 @@ export const copySharedPlan = mutation({
           });
         }
       }
+    }
+
+    // Auto-sync weeklyGoal to match the number of workout days
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", userId))
+      .first();
+
+    if (user && sourceDays.length > 0) {
+      await ctx.db.patch(user._id, { weeklyGoal: sourceDays.length });
     }
 
     return { planId: newPlanId };
