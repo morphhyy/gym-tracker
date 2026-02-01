@@ -250,12 +250,11 @@ export const getAllExerciseStats = query({
   },
 });
 
-// Helper function to get week start (Monday)
+// Helper function to get week start (Sunday)
 function getWeekStart(date: Date): string {
   const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
+  const day = d.getDay(); // 0=Sunday, 6=Saturday
+  d.setDate(d.getDate() - day); // Go back to Sunday
   return d.toISOString().split("T")[0];
 }
 

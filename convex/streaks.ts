@@ -19,12 +19,11 @@ const STREAK_ACHIEVEMENTS = [
   { type: "streak_100", threshold: 100, label: "Century Club" },
 ];
 
-// Helper to get start of current week (Monday)
+// Helper to get start of current week (Sunday)
 function getWeekStart(date: Date): string {
   const d = new Date(date);
-  const day = d.getUTCDay();
-  const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-  d.setUTCDate(diff);
+  const day = d.getUTCDay(); // 0=Sunday, 6=Saturday
+  d.setUTCDate(d.getUTCDate() - day); // Go back to Sunday
   return d.toISOString().split("T")[0];
 }
 
